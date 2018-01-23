@@ -41,12 +41,12 @@ image_channels              = 3
 grayscale                   = False
 
 # Dataset properties
-train_images_txt			= '/home/jlgomez/Datasets/Audi_10classes/train_images_audi10classes.txt'
-train_gt_txt				= '/home/jlgomez/Datasets/Audi_10classes/train_gt_audi10classes.txt'
-valid_images_txt			= '/home/jlgomez/Datasets/Audi_10classes/valid_images_audi10classes.txt'
-valid_gt_txt				= '/home/jlgomez/Datasets/Audi_10classes/valid_gt_audi10classes.txt'
-test_images_txt				= '/home/jlgomez/Datasets/Audi_10classes/test_images_audi10classes.txt'
-test_gt_txt					= '/home/jlgomez/Datasets/Audi_10classes/test_gt_audi10classes.txt'
+train_images_txt			= '/home/jlgomez/Datasets/DatasetX/images.txt'
+train_gt_txt				= '/home/jlgomez/Datasets/DatasetX/gt.txt'
+valid_images_txt			= '/home/jlgomez/Datasets/DatasetX/images.txt'
+valid_gt_txt				= '/home/jlgomez/Datasets/DatasetX/gt.txt'
+test_images_txt				= '/home/jlgomez/Datasets/DatasetX/images.txt'
+test_gt_txt				= '/home/jlgomez/Datasets/DatasetX/gt.txt'
 
 labels						= ['person', 'car', 'truck', 'drivable', 'nondrivable', 'blocker', 
 															'info', 'sky', 'buildings', 'nature'] 
