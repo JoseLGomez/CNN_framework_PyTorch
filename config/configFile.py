@@ -45,6 +45,7 @@ image_channels              = 3
 grayscale                   = False
 
 # Dataset properties
+
 train_images_txt			= '/home/jlgomez/Datasets/Splits/cityscapes_train_images.txt'
 train_gt_txt				= '/home/jlgomez/Datasets/Splits/cityscapes_train_gt.txt'
 valid_images_txt			= '/home/jlgomez/Datasets/Splits/cityscapes_valid_images.txt'
