@@ -40,7 +40,7 @@ def main():
 
 	parser.add_argument("--exp_folder",
                         type=str,
-                        default='/home/jlgomez/Experiments/DenseNetFCN/',
+                        default='/home/jlgomez/Experiments/',
                         help="Experiment folder path")
 
 	args = parser.parse_args()
@@ -67,12 +67,6 @@ def main():
 	train_transformation = preprocess.Compose([preprocess.applyCrop(cf), 
     										preprocess.RandomHorizontalFlip()])
 
-
-	predict_set = fromFileDatasetToPredict(cf, cf.test_images_txt, 
-    					cf.test_samples, cf.resize_image_test, 
-    					preprocess=img_preprocessing)
-	predict_loader = DataLoader(predict_set, batch_size=1, num_workers=8)
-
 	# Loss definition
 	criterion = CrossEntropyLoss2d(size_average=False, ignore_index=cf.void_class).cuda()
 
@@ -85,13 +79,13 @@ def main():
 	if cf.train:
 		train_time = time.time()
 		# Dataloaders
-		print ('\n- Reading Train dataset: ' + cf.model_name + ' <---')
+		print ('\n- Reading Train dataset: ')
 		train_set = fromFileDataset(cf, cf.train_images_txt, cf.train_gt_txt, 
 	    					cf.train_samples, cf.resize_image_train, 
 	    					preprocess=img_preprocessing, transform=train_transformation)
 		train_loader = DataLoader(train_set, batch_size=cf.train_batch_size, num_workers=8)
 
-		print ('\n- Reading Validation dataset: ' + cf.model_name + ' <---')
+		print ('\n- Reading Validation dataset: ')
 		valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt, 
 	    					cf.valid_samples_epoch, cf.resize_image_valid, 
 	    					preprocess=img_preprocessing, transform=None, valid=True)
@@ -107,13 +101,14 @@ def main():
  	if cf.validation:
  		valid_time = time.time()
  		if not cf.train:
- 			print ('- Reading Validation dataset: ' + cf.model_name + ' <---')
+ 			print ('- Reading Validation dataset: ')
  			valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt, 
 	    					cf.valid_samples, cf.resize_image_valid, 
 	    					preprocess=img_preprocessing, transform=None, valid=True)
- 		else:
+ 			valid_loader = DataLoader(valid_set, batch_size=cf.valid_batch_size, num_workers=8)
+ 		else: 
+ 		#If the Dataloader for validation was used on train, only update the total number of images to take
  			valid_set.update_indexes(cf.valid_samples, valid=True) #valid=True avoids shuffle for validation
-		valid_loader = DataLoader(valid_set, batch_size=cf.valid_batch_size, num_workers=8)
  		print ('\n- Starting validation <---')
  		validate(valid_loader, model, criterion, cf)
  		valid_time = time.time() - valid_time
@@ -121,7 +116,7 @@ def main():
 
  	if cf.test:
  		test_time = time.time()
- 		print ('\n- Reading Test dataset: ' + cf.model_name + ' <---')
+ 		print ('\n- Reading Test dataset: ')
  		test_set = fromFileDataset(cf, cf.test_images_txt, cf.test_gt_txt, 
     					cf.test_samples, cf.resize_image_test, 
     					preprocess=img_preprocessing, transform=None, valid=True)
@@ -134,6 +129,11 @@ def main():
 
  	if cf.predict_test:
  		pred_time = time.time()
+ 		print ('\n- Reading Prediction dataset: ')
+ 		predict_set = fromFileDatasetToPredict(cf, cf.test_images_txt, 
+    					cf.test_samples, cf.resize_image_test, 
+    					preprocess=img_preprocessing)
+		predict_loader = DataLoader(predict_set, batch_size=1, num_workers=8)
  		print ('\n - Generating predictions <---')
  		predict(predict_loader, model, criterion, cf)
  		pred_time = time.time() - pred_time
@@ -151,6 +151,7 @@ def train(train_loader, train_set, model, criterion, optimizer, cf, num_batches,
  		early_Stopping = Early_Stopping(cf)
 	#Train process
 	for epoch in range(curr_epoch, cf.epochs + 1):
+		epoch_time = time.time()
 		print ('\t ------ Epoch: ' + str(epoch) + ' ------ \n')
 		#Progress bar
 		prog_bar = ProgressBar(num_batches)
@@ -198,6 +199,8 @@ def train(train_loader, train_set, model, criterion, optimizer, cf, num_batches,
 		model.save(model.net, train_loss.avg, val_loss, mean_IoU, acc_cls)
 		# Shuffle train data
 		train_set.update_indexes()
+		epoch_time = time.time() - epoch_time
+ 		print('\t Epoch step finished: %ds ' % (epoch_time)) 
 		
 
 def validate(dataloader, model, criterion, cf, optimizer=None, epoch=None):

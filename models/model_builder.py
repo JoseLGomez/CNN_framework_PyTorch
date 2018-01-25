@@ -1,6 +1,7 @@
 import torch
 import os
 from FCdenseNetTorch import FCDenseNet
+from FCN8 import FCN8
 
 class Model_builder():
     def __init__(self, cf):
@@ -21,9 +22,11 @@ class Model_builder():
                                 n_channel_start=48,
                                 n_classes=self.cf.num_classes,
                                 drop_rate=0, bottle_neck=False).cuda()
+        elif self.cf.model_type == 'FCN8':
+            self.net = FCN8(num_classes=self.cf.num_classes, pretrained=self.cf.basic_pretrained_model).cuda()
         else:
             raise ValueError('Unknown model')
-        if self.cf.load_weight_only:
+        if self.cf.pretrained_model and self.cf.load_weight_only:
             self.net = self.restore_weights(self.net)
 
     def restore_weights(self, net):

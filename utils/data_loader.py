@@ -36,9 +36,9 @@ def Load_image(image_path, resize, grayscale, order = 1):
     if resize is not None:
         img = img.resize(resize, resample=Image.BILINEAR)
     # Color conversion
-    if len(img.size) == 2 and not grayscale:
+    if img.mode != 'RGB' and not grayscale:
         img = img.convert('RGB')
-    elif len(img.size) > 2 and img.size[2] == 3 and grayscale:
+    elif img.mode == 'RGB' and grayscale:
         img = img.convert('LA')
     return img
 
