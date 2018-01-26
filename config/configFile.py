@@ -1,5 +1,5 @@
 # Model
-model_type                  = 'DenseNetFCN'   # Options: ['DenseNetFCN', 'FCN8']
+model_type                  = 'FCN8'   # Options: ['DenseNetFCN', 'FCN8']
 	### DenseNetFCN options ####
 model_blocks                = 5               # Number of block densenetFCN_Custom only
 model_layers                = 4               # Number of layers per block densenetFCN_Custom only
@@ -24,7 +24,7 @@ model_path                  = '/home/jlgomez/Experiments/DenseNetFCN/' # None us
 train_samples               = 50 #-1 uses all the data available inside the dataset files
 valid_samples				= 10 #-1 uses all the data available inside the dataset files
 test_samples				= 10 #-1 uses all the data available inside the dataset files
-train_batch_size            = 1
+train_batch_size            = 4
 valid_batch_size            = 1
 test_batch_size             = 1
 train                       = True
@@ -34,15 +34,14 @@ predict_test				= False	# True when you want to generate predictions from test, 
 predict_path_output			= None # None uses the default output in the experiment folder /predictions
 
 # Image properties
-size_image_train			= (2048, 1024)#(1280, 960) 
-size_image_valid			= (2048, 1024)#(1280, 960)
-size_image_test				= (2048, 1024)#(1280, 960)
-resize_image_train          = (640, 360)#(640, 480)
-resize_image_valid          = (640, 360)#(640, 480)
-resize_image_test           = (640, 360)#(640, 480)
+size_image_train			= (1024, 2048)#(1280, 960) 
+size_image_valid			= (1024, 2048)#(1280, 960)
+size_image_test				= (1024, 2048)#(1280, 960)
+resize_image_train          = (320, 640)#(640, 480)
+resize_image_valid          = (320, 640)#(640, 480)
+resize_image_test           = (320, 640)#(640, 480)
 crop_train					= (320, 320)
-image_channels              = 3
-grayscale                   = False
+grayscale                   = False #Use this option to convert to rgb a grascale dataset
 
 # Dataset properties
 

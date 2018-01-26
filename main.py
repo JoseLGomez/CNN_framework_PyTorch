@@ -8,6 +8,7 @@ import os
 import sys
 import scipy.misc
 import cv2 as cv
+from PIL import Image
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.autograd import Variable
@@ -269,6 +270,9 @@ def predict(dataloader, model, criterion, cf):
 
         path = os.path.join(cf.predict_path_output, img_name[0])
         #scipy.misc.imsave(path,predictions)
+        predictions = Image.fromarray(predictions.astype(np.uint8))
+        predictions = predictions.resize((cf.original_size[1],cf.original_size[0]), resample=Image.BILINEAR)
+        predictions = np.array(predictions)
         cv.imwrite(path, predictions)
         print('%d / %d' % (vi + 1, len(dataloader)))
 

@@ -28,6 +28,7 @@ class Configuration():
         if cf.resize_image_valid is not None:
             cf.size_image_valid = cf.resize_image_valid 
         if cf.resize_image_test is not None:
+            cf.original_size = cf.size_image_test
             cf.size_image_test = cf.resize_image_test
         if cf.model_path is None:
             cf.model_path = cf.exp_folder      

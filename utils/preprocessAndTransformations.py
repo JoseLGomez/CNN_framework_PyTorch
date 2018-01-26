@@ -52,18 +52,17 @@ class applyCrop(object):
     def __init__(self, cf):
         self.cf = cf
     def __call__(self, img, mask):
-        w, h = self.cf.size_image_train
+        h, w = self.cf.size_image_train
         th, tw = self.cf.crop_train
         if w == tw and h == th:
             return img, mask
-        if w < tw or h < th:
-            img = img.resize((tw, th), Image.BILINEAR)
-            mask = mask.resize((tw, th), Image.NEAREST)
         else:
             x1 = random.randint(0, w - tw)
             y1 = random.randint(0, h - th)
-            img = img.crop((x1, y1, x1 + tw, y1 + th))
-            mask = mask.crop((x1, y1, x1 + tw, y1 + th))
+            img = img[y1:y1 + th,x1:x1 + tw]
+            mask = mask[y1:y1 + th,x1:x1 + tw]
+            '''img = img.crop((x1, y1, x1 + tw, y1 + th))
+            mask = mask.crop((x1, y1, x1 + tw, y1 + th))'''
         return img, mask
 
 class RandomHorizontalFlip(object):

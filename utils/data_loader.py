@@ -3,6 +3,8 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import numpy as np
 import skimage.io as io
+from skimage.color import rgb2gray, gray2rgb
+import skimage.transform
 from PIL import Image
 import ntpath
 import os
@@ -29,7 +31,7 @@ def Get_filenames(directory):
                 file_names.append(fname)
     return file_paths, file_names
 
-# Load image
+# Load image using PIL
 def Load_image(image_path, resize, grayscale, order = 1):
     img = Image.open(image_path)
     # Resize
@@ -40,6 +42,22 @@ def Load_image(image_path, resize, grayscale, order = 1):
         img = img.convert('RGB')
     elif img.mode == 'RGB' and grayscale:
         img = img.convert('LA')
+    return img
+
+# Load image using Skimage
+def load_img(path, resize, grayscale=False, order=1):
+    # Load image
+    img = io.imread(path)
+    if resize is not None:
+        img = skimage.transform.resize(img, resize, order=order,
+                                       preserve_range=True, mode='reflect')
+
+    # Color conversion
+    if len(img.shape) == 2 and not grayscale:
+        img = gray2rgb(img)
+    elif len(img.shape) > 2 and img.shape[2] == 3 and grayscale:
+        img = rgb2gray(img)
+    # Return image
     return img
 
 # Checks if a file is an image
@@ -83,10 +101,11 @@ class fromFileDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.image_names[self.indexes[idx]]
         gt_path = self.gt_names[self.indexes[idx]]
-        img = Load_image(img_path, self.resize, self.cf.grayscale, order=1)
-        gt = Load_image(gt_path, self.resize, grayscale=True, order=0)
+        img = load_img(img_path, self.resize, self.cf.grayscale, order=1)
+        gt = load_img(gt_path, self.resize, grayscale=True, order=0)
         if self.transform is not None:
             img, gt = self.transform(img, gt)
+        img = Image.fromarray(img.astype(np.uint8))
         if self.preprocess is not None:
             img = self.preprocess(img)
         gt = torch.from_numpy(np.array(gt, dtype=np.int32)).long()
@@ -122,7 +141,7 @@ class fromFileDatasetToPredict(Dataset):
         img_path = self.image_names[self.indexes[idx]]
         img_path_comp = img_path.split("/")
         img_name = img_path_comp[-1]
-        img = Load_image(img_path, self.resize, self.cf.grayscale, order=1)
+        img = load_img(img_path, self.resize, self.cf.grayscale, order=1)
         if self.preprocess is not None:
             img = self.preprocess(img)
         return img, img_name
