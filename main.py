@@ -24,6 +24,7 @@ from utils.utils import AverageMeter, Early_Stopping
 from utils.ProgressBar import ProgressBar
 from metrics.metrics import evaluate
 from utils.logger import Logger
+from utils.scheduler_builder import scheduler_builder
 
 def main():
 	start_time = time.time()
@@ -75,7 +76,7 @@ def main():
 	optimizer = Optimizer_builder().build(cf, model.net)
 
 	# Learning rate scheduler
-	scheduler = ReduceLROnPlateau(optimizer, 'min', patience=10, min_lr=1e-10, factor=0.1)
+	scheduler = scheduler_builder().build(cf, optimizer)
 
 	if cf.train:
 		train_time = time.time()
