@@ -68,6 +68,7 @@ optimizer                   = 'Adam'
 momentum1					= 0.9
 momentum2					= 0.99
 learning_rate               = 0.0001
+learning_rate_bias			= 0.0001
 weight_decay				= 0.01
 	### Scheduler
 scheduler 					= 'ReduceLROnPlateau' #['ReduceLROnPlateau','Step','MultiStep','Exponential', None]
