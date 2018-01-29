@@ -1,4 +1,3 @@
-from torch import optim
 import torch.optim.lr_scheduler as lr_scheduler
 
 class scheduler_builder:
@@ -14,6 +13,8 @@ class scheduler_builder:
     		scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=cf.milestone, gamma=cf.decay, last_epoch=-1)
     	elif cf.scheduler == 'Exponential':
     		scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=cf.decay, last_epoch=-1)
+        elif cf.scheduler == None or cf.scheduler == 'None':
+            scheduler = None
     	else:
     		raise ValueError('Unknown scheduler type')
     	return scheduler

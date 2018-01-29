@@ -21,8 +21,8 @@ model_path                  = '/home/jlgomez/Experiments/DenseNetFCN/' # None us
 
 # General parameters
 
-train_samples               = -1 #-1 uses all the data available inside the dataset files
-valid_samples				= -1 #-1 uses all the data available inside the dataset files
+train_samples               = 20 #-1 uses all the data available inside the dataset files
+valid_samples				= 10 #-1 uses all the data available inside the dataset files
 test_samples				= 10 #-1 uses all the data available inside the dataset files
 train_batch_size            = 4
 valid_batch_size            = 1
@@ -59,7 +59,7 @@ shuffle                     = True
 void_class                  = 255 #void id or value on the image
 
 # Training
-epochs                      = 40 #Max number of epochs
+epochs                      = 2 #Max number of epochs
 initial_epoch				= 1 #Defines the starting epoch number 
 valid_samples_epoch			= 50 # Number of validation images used to validate an epoch
 is_training                 = True
@@ -70,7 +70,7 @@ momentum2					= 0.99
 learning_rate               = 0.0001
 weight_decay				= 0.01
 	### Scheduler
-scheduler 					= 'ReduceLROnPlateau' #['ReduceLROnPlateau','Step','MultiStep','Exponential']
+scheduler 					= 'ReduceLROnPlateau' #['ReduceLROnPlateau','Step','MultiStep','Exponential', None]
 decay 						= 0.1	#Learnng rate decay to apply (lr*decay)
 sched_patience				= 5 # ReduceLROnPlateau option: epoch patience without loss change until a lr decrement
 step_size					= 20 #Step option: epoch counter to decrease lr
