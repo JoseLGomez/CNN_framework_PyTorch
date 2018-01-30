@@ -15,12 +15,12 @@ class Compose(object):
 
 class ToTensor(object):
     def __call__(self, image):
+
         # image = torch.from_numpy(np.flip(image.transpose((2, 0, 1)),axis=0).copy())
         image = image[...,::-1]
         image = torch.from_numpy(image.transpose((2, 0, 1)).copy())
         image = image.float()  # .div(255)
         return image
-
 
 '''class rescale(object):
     def __init__(self,rescale):
@@ -38,7 +38,6 @@ class std_norm(object):
         self.std = torch.FloatTensor(std)
     def __call__(self, image):
         return torch.div(image,(self.std + 1e-7))'''
-
 
 class PrintInput(object):
     def __call__(self, image):
@@ -68,7 +67,6 @@ class std_norm(object):
 
     def __call__(self, image):
         return image / (self.std + 1e-7)
-
 
 class preproces_input(object):
     def __init__(self, cf):
