@@ -15,6 +15,7 @@ from utils.optimizer_builder import Optimizer_builder
 from utils.logger import Logger
 from utils.scheduler_builder import scheduler_builder
 
+
 def main():
 	start_time = time.time()
     # Input arguments
@@ -53,10 +54,12 @@ def main():
 	model.net.train() # enable dropout modules and others
 
 	# Compose preprocesing function for dataloaders
-	img_preprocessing = standard_transforms.Compose([standard_transforms.ToTensor(),
-    										standard_transforms.Normalize(cf.mean,cf.std)])
-	train_transformation = preprocess.Compose([preprocess.applyCrop(cf), 
-    										preprocess.RandomHorizontalFlip()])
+	'''img_preprocessing = standard_transforms.Compose([standard_transforms.ToTensor(),
+                                            standard_transforms.Normalize(cf.mean,cf.std)])'''
+	img_preprocessing = standard_transforms.Compose([preprocess.preproces_input(cf), preprocess.ToTensor()])
+	# ,preprocess.PrintInput()])
+	train_transformation = preprocess.Compose([preprocess.applyCrop(cf),
+											   preprocess.RandomHorizontalFlip(cf)])
 
 	# Loss definition
 	criterion = CrossEntropyLoss2d(size_average=False, ignore_index=cf.void_class).cuda()

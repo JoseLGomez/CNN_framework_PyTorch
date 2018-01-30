@@ -105,7 +105,7 @@ class fromFileDataset(Dataset):
         gt = load_img(gt_path, self.resize, grayscale=True, order=0)
         if self.transform is not None:
             img, gt = self.transform(img, gt)
-        img = Image.fromarray(img.astype(np.uint8))
+        #img = Image.fromarray(img.astype(np.uint8))
         if self.preprocess is not None:
             img = self.preprocess(img)
         gt = torch.from_numpy(np.array(gt, dtype=np.int32)).long()
@@ -120,7 +120,7 @@ class fromFileDataset(Dataset):
 
 class fromFileDatasetToPredict(Dataset):
 
-    def __init__(self, cf, image_txt, num_images, resize, 
+    def __init__(self, cf, image_txt, num_images, resize,
                         preprocess=None):
         self.cf = cf
         self.resize = resize
@@ -128,7 +128,7 @@ class fromFileDatasetToPredict(Dataset):
         self.num_images = num_images
         with open(image_txt) as f:
             image_names = f.readlines()
-        self.image_names = [x.strip() for x in image_names] 
+        self.image_names = [x.strip() for x in image_names]
         if len(self.image_names) < self.num_images or self.num_images == -1:
             self.num_images = len(self.image_names)
         self.img_indexes = np.arange(len(self.image_names))

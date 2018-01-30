@@ -6,7 +6,7 @@ import os
 from torch.autograd import Variable
 from PIL import Image
 
-from utils.utils import AverageMeter, Early_Stopping
+from utils.tools import AverageMeter, Early_Stopping
 from utils.ProgressBar import ProgressBar
 from metrics.metrics import evaluate
 
