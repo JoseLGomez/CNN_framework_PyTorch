@@ -105,7 +105,7 @@ class fromFileDataset(Dataset):
         gt = load_img(gt_path, self.resize, grayscale=True, order=0)
         if self.transform is not None:
             img, gt = self.transform(img, gt)
-        img = Image.fromarray(img.astype(np.uint8))
+        #img = Image.fromarray(img.astype(np.uint8))
         if self.preprocess is not None:
             img = self.preprocess(img)
         gt = torch.from_numpy(np.array(gt, dtype=np.int32)).long()

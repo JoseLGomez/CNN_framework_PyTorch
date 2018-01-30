@@ -13,9 +13,12 @@ class Compose(object):
 
 class ToTensor(object):
     def __call__(self, image):
-        return torch.from_numpy(np.flip(image.transpose((2, 0, 1)),axis=0).copy())
+        #image = torch.from_numpy(np.flip(image.transpose((2, 0, 1)),axis=0).copy())
+        image = torch.from_numpy(image.transpose((2, 0, 1)).copy())
+        image = image.float()#.div(255)
+        return image
 
-class rescale(object):
+'''class rescale(object):
     def __init__(self,rescale):
         self.rescale = rescale
     def __call__(self, image):
@@ -31,17 +34,44 @@ class std_norm(object):
     def __init__(self, std):
         self.std = torch.FloatTensor(std)
     def __call__(self, image):
-        return torch.div(image,(self.std + 1e-7))
+        return torch.div(image,(self.std + 1e-7))'''
+
+class PrintInput(object):
+    def __call__(self, image):
+        print image
+        input()
+
+
+class rescale(object):
+    def __init__(self,rescale):
+        self.rescale = rescale
+    def __call__(self, image):
+        return image*self.rescale
+
+class mean_norm(object):
+    def __init__(self, mean):
+        self.mean = np.asarray(mean, dtype=np.float32)
+    def __call__(self, image):
+        return image-self.mean
+        
+class std_norm(object):
+    def __init__(self, std):
+        self.std = np.asarray(std, dtype=np.float32)
+    def __call__(self, image):
+        return image/(self.std + 1e-7)
         
 class preproces_input(object):
     def __init__(self, cf):
         self.cf = cf
-        #self.rescale = rescale(self.cf.rescale)
-        self.mean = mean_norm(self.cf.mean)
-        self.std = std_norm(self.cf.std)
+        if self.cf.rescale is not None:
+            self.rescale = rescale(self.cf.rescale)
+        if self.cf.mean is not None:
+            self.mean = mean_norm(self.cf.mean)
+        if self.cf.std is not None:
+            self.std = std_norm(self.cf.std)
     def __call__(self, image):
-        '''if cf.rescale is not None:
-            image = self.rescale(image)'''
+        if self.cf.rescale is not None:
+            image = self.rescale(image)
         if self.cf.mean is not None:
             image = self.mean(image)
         if self.cf.std is not None:
@@ -66,7 +96,9 @@ class applyCrop(object):
         return img, mask
 
 class RandomHorizontalFlip(object):
+    def __init__(self, cf):
+        self.cf = cf
     def __call__(self, img, gt):
-        if random.random() < 0.5:
+        if self.cf.hflips and random.random() < 0.5:
             return np.fliplr(img), np.fliplr(gt)
         return img, gt
