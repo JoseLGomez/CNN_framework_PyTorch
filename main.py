@@ -44,6 +44,7 @@ def main():
 
     # Enable log file
     sys.stdout = Logger(cf.log_file)
+    sys.stdout.log_start()
 
     print ('\n ---------- Init experiment: ' + cf.exp_name + ' ---------- \n')
 
