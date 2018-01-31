@@ -1,4 +1,5 @@
 import math
+import sys
 import time
 import numpy as np
 import cv2 as cv
@@ -6,7 +7,7 @@ import os
 from torch.autograd import Variable
 from PIL import Image
 
-from utils.utils import AverageMeter, Early_Stopping
+from utils.tools import AverageMeter, Early_Stopping
 from utils.ProgressBar import ProgressBar
 from metrics.metrics import evaluate
 
@@ -48,7 +49,11 @@ class Train():
                 optimizer.step()
 
                 train_loss.update(loss.data[0], N)
-                #prog_bar.update(loss=train_loss.avg)
+
+                sys.stdout.log_stop()
+                # prog_bar.update()
+                sys.stdout.log_start()
+
                 curr_iter += 1
                 #writer.add_scalar('train_loss', train_loss.avg, curr_iter)
                 # Display progress

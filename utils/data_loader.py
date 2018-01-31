@@ -45,7 +45,7 @@ def Load_image(image_path, resize, grayscale, order = 1):
     return img
 
 # Load image using Skimage
-def load_img(path, resize, grayscale=False, order=1):
+def load_img(path, resize=None, grayscale=False, order=1):
     # Load image
     img = io.imread(path)
     if resize is not None:
@@ -70,7 +70,7 @@ def has_valid_extension(fname, white_list_formats={'png', 'jpg', 'jpeg',
 
 class fromFileDataset(Dataset):
 
-    def __init__(self, cf, image_txt, gt_txt, num_images, resize, 
+    def __init__(self, cf, image_txt, gt_txt, num_images, resize=None,
                         preprocess=None, transform=None, valid=False):
 
         self.cf = cf
@@ -83,7 +83,7 @@ class fromFileDataset(Dataset):
             image_names = f.readlines()
         # remove whitespace characters like `\n` at the end of each line
         self.image_names = [x.strip() for x in image_names] 
-        print ("\t Gt from: " + image_txt)
+        print ("\t Gt from: " + gt_txt)
         with open(gt_txt) as f:
             gt_names = f.readlines()
         self.gt_names = [x.strip() for x in gt_names]
@@ -105,7 +105,7 @@ class fromFileDataset(Dataset):
         gt = load_img(gt_path, self.resize, grayscale=True, order=0)
         if self.transform is not None:
             img, gt = self.transform(img, gt)
-        img = Image.fromarray(img.astype(np.uint8))
+        #img = Image.fromarray(img.astype(np.uint8))
         if self.preprocess is not None:
             img = self.preprocess(img)
         gt = torch.from_numpy(np.array(gt, dtype=np.int32)).long()
@@ -115,12 +115,15 @@ class fromFileDataset(Dataset):
         if self.cf.shuffle and not valid:
             np.random.shuffle(self.img_indexes)
         if num_images is not None:
-            self.num_images = num_images
+            if len(self.image_names) < self.num_images or num_images == -1:
+                self.num_images = len(self.image_names)
+            else:
+                self.num_images = num_images
         self.indexes = self.img_indexes[:self.num_images]
 
 class fromFileDatasetToPredict(Dataset):
 
-    def __init__(self, cf, image_txt, num_images, resize, 
+    def __init__(self, cf, image_txt, num_images, resize,
                         preprocess=None):
         self.cf = cf
         self.resize = resize
@@ -128,7 +131,7 @@ class fromFileDatasetToPredict(Dataset):
         self.num_images = num_images
         with open(image_txt) as f:
             image_names = f.readlines()
-        self.image_names = [x.strip() for x in image_names] 
+        self.image_names = [x.strip() for x in image_names]
         if len(self.image_names) < self.num_images or self.num_images == -1:
             self.num_images = len(self.image_names)
         self.img_indexes = np.arange(len(self.image_names))
