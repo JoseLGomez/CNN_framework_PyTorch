@@ -6,10 +6,11 @@ import cv2 as cv
 import os
 from torch.autograd import Variable
 from PIL import Image
+import operator
 
 from utils.tools import AverageMeter, Early_Stopping
 from utils.ProgressBar import ProgressBar
-from metrics.metrics import evaluate
+from metrics.metrics import compute_stats, compute_mIoU
 
 class Train():
     def __init__(self, cf, train_loader, train_set, valid_set, valid_loader):
@@ -91,11 +92,13 @@ class Validation():
         model.net.eval()
 
         val_loss = AverageMeter()
-        gts_all, predictions_all = [], []
+        # gts_all, predictions_all = [], []
         acc = np.zeros(len(self.valid_loader))
         acc_cls = np.zeros(len(self.valid_loader))
         mean_IoU = np.zeros(len(self.valid_loader))
         fwavacc = np.zeros(len(self.valid_loader))
+
+        TP_list, FP_list, FN_list = np.zeros(self.cf.num_classes), np.zeros(self.cf.num_classes), np.zeros(self.cf.num_classes)
 
         for vi, data in enumerate(self.valid_loader):
             inputs, gts = data
@@ -108,19 +111,25 @@ class Validation():
 
             val_loss.update(criterion(outputs, gts).data[0] / N, N)
 
-            gts_all.append(gts.data.cpu().numpy())
-            predictions_all.append(predictions)
+            TP, FP, FN = compute_stats(predictions, gts.cpu().data.numpy(), self.cf.num_classes, self.cf.void_class)
+            TP_list = map(operator.add, TP_list, TP)
+            FN_list = map(operator.add, FN_list, FN)
+            FP_list = map(operator.add, FP_list, FP)
 
-            metric = evaluate(predictions_all, gts_all, self.cf.num_classes)
-            acc[vi] = metric[0]
-            acc_cls[vi] = metric[1]
-            mean_IoU[vi] = metric[2]
-            fwavacc[vi] = metric[3]
+            # gts_all.append(gts.data.cpu().numpy())
+            # predictions_all.append(predictions)
+            #
+            # metric = evaluate(predictions_all, gts_all, self.cf.num_classes)
+            # acc[vi] = metric[0]
+            # acc_cls[vi] = metric[1]
+            # mean_IoU[vi] = metric[2]
+            # fwavacc[vi] = metric[3]
 
-        acc = np.mean(acc)
-        acc_cls = np.mean(acc_cls)
+        mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
+        acc = 0#np.mean(acc)
+        acc_cls = 0#np.mean(acc_cls)
         mean_IoU = np.mean(mean_IoU)
-        fwavacc = np.mean(fwavacc)
+        fwavacc = 0#np.mean(fwavacc)
         
         if epoch is not None:
             print('----------------- Epoch scores summary -------------------------')
