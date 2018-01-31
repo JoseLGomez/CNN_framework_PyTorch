@@ -45,7 +45,7 @@ def Load_image(image_path, resize, grayscale, order = 1):
     return img
 
 # Load image using Skimage
-def load_img(path, resize, grayscale=False, order=1):
+def load_img(path, resize=None, grayscale=False, order=1):
     # Load image
     img = io.imread(path)
     if resize is not None:
@@ -83,7 +83,7 @@ class fromFileDataset(Dataset):
             image_names = f.readlines()
         # remove whitespace characters like `\n` at the end of each line
         self.image_names = [x.strip() for x in image_names] 
-        print ("\t Gt from: " + image_txt)
+        print ("\t Gt from: " + gt_txt)
         with open(gt_txt) as f:
             gt_names = f.readlines()
         self.gt_names = [x.strip() for x in gt_names]

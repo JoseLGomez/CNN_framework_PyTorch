@@ -21,10 +21,10 @@ model_path                  = '/home/jlgomez/Experiments/DenseNetFCN/' # None us
 
 # General parameters
 
-train_samples               = 100 #-1 uses all the data available inside the dataset files
-valid_samples               = 5 #-1 uses all the data available inside the dataset files
+train_samples               = -1 #-1 uses all the data available inside the dataset files
+valid_samples               = -1 #-1 uses all the data available inside the dataset files
 test_samples                = 10 #-1 uses all the data available inside the dataset files
-train_batch_size            = 4
+train_batch_size            = 8
 valid_batch_size            = 1
 test_batch_size             = 1
 train                       = True
@@ -37,9 +37,9 @@ predict_path_output         = None # None uses the default output in the experim
 size_image_train            = (1024, 2048)#(1280, 960) 
 size_image_valid            = (1024, 2048)#(1280, 960)
 size_image_test             = (1024, 2048)#(1280, 960)
-resize_image_train          = (320, 640)#(640, 480)
-resize_image_valid          = (320, 640)#(640, 480)
-resize_image_test           = (320, 640)#(640, 480)
+resize_image_train          = None #(320, 640)#(640, 480)
+resize_image_valid          = None #(320, 640)#(640, 480)
+resize_image_test           = None #(320, 640)#(640, 480)
 crop_train                  = (320, 320)
 grayscale                   = False #Use this option to convert to rgb a grascale dataset
 
@@ -61,15 +61,15 @@ void_class                  = 255 #void id or value on the image
 # Training
 epochs                      = 2 #Max number of epochs
 initial_epoch               = 1 #Defines the starting epoch number 
-valid_samples_epoch         = 5 # Number of validation images used to validate an epoch
+valid_samples_epoch         = 50 # Number of validation images used to validate an epoch
 is_training                 = True
     ### Optimizer ###
 optimizer                   = 'SGD'
 momentum1                   = 0.95
 momentum2                   = 0.99
-learning_rate               = 0.00000001
-learning_rate_bias          = 0.00000001
-weight_decay                = 0.0001
+learning_rate               = 1.0e-4
+learning_rate_bias          = 1.0e-4
+weight_decay                = 0.0005
     ### Scheduler
 scheduler                   = 'ReduceLROnPlateau' #['ReduceLROnPlateau','Step','MultiStep','Exponential', None]
 decay                       = 0.1   #Learnng rate decay to apply (lr*decay)

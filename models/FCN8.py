@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from torch import nn
 
-import fcn
+#import fcn
 
 from FCN16 import FCN16
 
@@ -27,17 +27,18 @@ def get_upsampling_weight(in_channels, out_channels, kernel_size):
 class FCN8(nn.Module):
 
 
-    @classmethod
+    '''@classmethod
     def download(cls):
         return fcn.data.cached_download(
             url='http://drive.google.com/uc?id=0B9P1L--7Wd2vT0FtdThWREhjNkU',
             path=cls.pretrained_model,
             md5='dbd9bbb3829a3184913bccc74373afbb',
         )
+        '''
 
     def __init__(self, num_classes=21, pretrained=None):
         super(FCN8, self).__init__()
-        self.pretrained_model = '/home/gvillalonga/data/models/pytorch/fcn16s_from_caffe.pth'
+        self.pretrained_model = '/home/jlgomez/Repositories/Models/fcn16s_from_caffe.pth'
 
         # conv1
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=100)
@@ -188,11 +189,11 @@ class FCN8(nn.Module):
                 l2.weight  # skip ReLU / Dropout
             except Exception:
                 continue
-            assert l1.weight.size() == l2.weight.size()
-            l2.weight.data.copy_(l1.weight.data)
+            if l1.weight.size() == l2.weight.size():
+                l2.weight.data.copy_(l1.weight.data)
             if l1.bias is not None:
-                assert l1.bias.size() == l2.bias.size()
-                l2.bias.data.copy_(l1.bias.data)
+                if l1.bias.size() == l2.bias.size():
+                    l2.bias.data.copy_(l1.bias.data)
 
 
 
