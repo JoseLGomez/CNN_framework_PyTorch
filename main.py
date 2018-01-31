@@ -37,42 +37,42 @@ def main():
 
 	args = parser.parse_args()
 
-	# Prepare configutation
-	print ('Loading configuration ...')
-	config = Configuration(args.config_file, args.exp_name, args.exp_folder)
-	cf = config.Load()
+    # Prepare configutation
+    print ('Loading configuration ...')
+    config = Configuration(args.config_file, args.exp_name, args.exp_folder)
+    cf = config.Load()
 
-	# Enable log file
-	sys.stdout = Logger(cf.log_file)
-	sys.stdout.log_start()
+    # Enable log file
+    sys.stdout = Logger(cf.log_file)
+    sys.stdout.log_start()
 
-	print ('\n ---------- Init experiment: ' + cf.exp_name + ' ---------- \n')
+    print ('\n ---------- Init experiment: ' + cf.exp_name + ' ---------- \n')
 
-	# Model building
-	print ('- Building model: ' + cf.model_name + ' <--- ')
-	model = Model_builder(cf)
-	model.build()
-	model.net.train() # enable dropout modules and others
+    # Model building
+    print ('- Building model: ' + cf.model_name + ' <--- ')
+    model = Model_builder(cf)
+    model.build()
+    model.net.train() # enable dropout modules and others
 
-	# Compose preprocesing function for dataloaders
-	'''img_preprocessing = standard_transforms.Compose([standard_transforms.ToTensor(),
+    # Compose preprocesing function for dataloaders
+    '''img_preprocessing = standard_transforms.Compose([standard_transforms.ToTensor(),
                                             standard_transforms.Normalize(cf.mean,cf.std)])'''
-	img_preprocessing = standard_transforms.Compose([preprocess.preproces_input(cf), preprocess.ToTensor()])
-	# ,preprocess.PrintInput()])
-	train_transformation = preprocess.Compose([preprocess.applyCrop(cf),
+    img_preprocessing = standard_transforms.Compose([preprocess.preproces_input(cf), preprocess.ToTensor()])
+    # ,preprocess.PrintInput()])
+    train_transformation = preprocess.Compose([preprocess.applyCrop(cf),
                                                preprocess.RandomHorizontalFlip(cf)])
 
-	# Loss definition
-	criterion = CrossEntropyLoss2d(size_average=False, ignore_index=cf.void_class).cuda()
+    # Loss definition
+    criterion = CrossEntropyLoss2d(size_average=False, ignore_index=cf.void_class).cuda()
 
-	# Optimizer definition
-	optimizer = Optimizer_builder().build(cf, model.net)
+    # Optimizer definition
+    optimizer = Optimizer_builder().build(cf, model.net)
 
-	# Learning rate scheduler
-	scheduler = scheduler_builder().build(cf, optimizer)
+    # Learning rate scheduler
+    scheduler = scheduler_builder().build(cf, optimizer)
 
-	if cf.train:
-		train_time = time.time()
+    if cf.train:
+        train_time = time.time()
         # Dataloaders
         print ('\n- Reading Train dataset: ')
         train_set = fromFileDataset(cf, cf.train_images_txt, cf.train_gt_txt,
@@ -92,8 +92,8 @@ def main():
         train_time = time.time() - train_time
         print('\t Train step finished: %ds ' % (train_time))
 
-	if cf.validation:
-		valid_time = time.time()
+    if cf.validation:
+        valid_time = time.time()
         if not cf.train:
             print ('- Reading Validation dataset: ')
             valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
@@ -109,8 +109,8 @@ def main():
         valid_time = time.time() - valid_time
         print('\t Validation step finished: %ds ' % (valid_time))
 
-	if cf.test:
-		test_time = time.time()
+    if cf.test:
+        test_time = time.time()
         print ('\n- Reading Test dataset: ')
         test_set = fromFileDataset(cf, cf.test_images_txt, cf.test_gt_txt,
                         cf.test_samples, cf.resize_image_test,
@@ -123,8 +123,8 @@ def main():
         test_time = time.time() - test_time
         print('\t Test step finished: %ds ' % (test_time))
 
-	if cf.predict_test:
-		pred_time = time.time()
+    if cf.predict_test:
+        pred_time = time.time()
         print ('\n- Reading Prediction dataset: ')
         predict_set = fromFileDatasetToPredict(cf, cf.test_images_txt,
                         cf.test_samples, cf.resize_image_test,
@@ -136,9 +136,9 @@ def main():
         pred_time = time.time() - pred_time
         print('\t Prediction step finished: %ds ' % (pred_time))
 
-	total_time = time.time() - start_time
-	print('\n- Experiment finished: %ds ' % (total_time))
-	print('\n')
+    total_time = time.time() - start_time
+    print('\n- Experiment finished: %ds ' % (total_time))
+    print('\n')
 
 # Entry point of the script
 if __name__ == "__main__":

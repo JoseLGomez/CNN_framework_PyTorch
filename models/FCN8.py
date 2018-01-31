@@ -38,7 +38,7 @@ class FCN8(nn.Module):
 
     def __init__(self, num_classes=21, pretrained=None):
         super(FCN8, self).__init__()
-        self.pretrained_model = '/home/gvillalonga/data/models/pytorch/fcn16s_from_caffe.pth'
+        self.pretrained_model = '/home/jlgomez/Repositories/Models/fcn16s_from_caffe.pth'
 
         # conv1
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=100)

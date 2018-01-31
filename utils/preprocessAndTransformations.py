@@ -93,63 +93,62 @@ class applyCrop(object):
         self.cf = cf
 
     def __call__(self, img, mask):
-        if self.cf.crop_train is not None:
-            h, w = np.shape(img)[0:2]
-            th, tw = self.cf.crop_train
-            if w == tw and h == th:
-                return img, mask
-            elif tw>w and th>h:
-                diff_w = tw - w
-                marg_w_init = int(diff_w / 2)
-                marg_w_fin = diff_w - marg_w_init
+        h, w = np.shape(img)[0:2]
+        th, tw = self.cf.crop_train
+        if w == tw and h == th:
+            return img, mask
+        elif tw>w and th>h:
+            diff_w = tw - w
+            marg_w_init = int(diff_w / 2)
+            marg_w_fin = diff_w - marg_w_init
 
-                diff_h = th - h
-                marg_h_init = int(diff_h / 2)
-                marg_h_fin = diff_h - marg_h_init
+            diff_h = th - h
+            marg_h_init = int(diff_h / 2)
+            marg_h_fin = diff_h - marg_h_init
 
-                tmp_img = np.zeros((th, tw, 3))
-                tmp_mask = self.cf.void_class * np.ones((th, tw))
+            tmp_img = np.zeros((th, tw, 3))
+            tmp_mask = self.cf.void_class * np.ones((th, tw))
 
-                tmp_img[marg_h_init:th - marg_h_fin, marg_w_init:tw - marg_w_fin] = img[0:h, 0:w]
-                tmp_mask[marg_h_init:th - marg_h_fin, marg_w_init:tw - marg_w_fin] = mask[0:h, 0:w]
+            tmp_img[marg_h_init:th - marg_h_fin, marg_w_init:tw - marg_w_fin] = img[0:h, 0:w]
+            tmp_mask[marg_h_init:th - marg_h_fin, marg_w_init:tw - marg_w_fin] = mask[0:h, 0:w]
 
-                img = tmp_img
-                mask = tmp_mask
+            img = tmp_img
+            mask = tmp_mask
 
-            elif tw>w:
-                diff_w = tw-w
-                marg_w_init = int(diff_w/2)
-                marg_w_fin = diff_w - marg_w_init
-                tmp_img = np.zeros((th, tw ,3))
-                tmp_mask = self.cf.void_class*np.ones((th, tw))
+        elif tw>w:
+            diff_w = tw-w
+            marg_w_init = int(diff_w/2)
+            marg_w_fin = diff_w - marg_w_init
+            tmp_img = np.zeros((th, tw ,3))
+            tmp_mask = self.cf.void_class*np.ones((th, tw))
 
-                y1 = random.randint(0, h - th)
-                tmp_img[:,marg_w_init:tw - marg_w_fin] = img[y1:y1 + th,0:w]
-                tmp_mask[:,marg_w_init:tw - marg_w_fin] = mask[y1:y1 + th, 0:w]
+            y1 = random.randint(0, h - th)
+            tmp_img[:,marg_w_init:tw - marg_w_fin] = img[y1:y1 + th,0:w]
+            tmp_mask[:,marg_w_init:tw - marg_w_fin] = mask[y1:y1 + th, 0:w]
 
-                img = tmp_img
-                mask = tmp_mask
+            img = tmp_img
+            mask = tmp_mask
 
-            elif th>h:
-                diff_h = th - h
-                marg_h_init = int(diff_h / 2)
-                marg_h_fin = diff_h - marg_h_init
-                tmp_img = np.zeros((th, tw, 3))
-                tmp_mask = self.cf.void_class * np.ones((th, tw))
+        elif th>h:
+            diff_h = th - h
+            marg_h_init = int(diff_h / 2)
+            marg_h_fin = diff_h - marg_h_init
+            tmp_img = np.zeros((th, tw, 3))
+            tmp_mask = self.cf.void_class * np.ones((th, tw))
 
-                x1 = random.randint(0, w - tw)
-                tmp_img[marg_h_init:th-marg_h_fin, :] = img[0:h, x1:x1 + tw]
-                tmp_mask[marg_h_init:th-marg_h_fin, :] = mask[0:h, x1:x1 + tw]
+            x1 = random.randint(0, w - tw)
+            tmp_img[marg_h_init:th-marg_h_fin, :] = img[0:h, x1:x1 + tw]
+            tmp_mask[marg_h_init:th-marg_h_fin, :] = mask[0:h, x1:x1 + tw]
 
-                img = tmp_img
-                mask = tmp_mask
-            else:
-                x1 = random.randint(0, w - tw)
-                y1 = random.randint(0, h - th)
-                img = img[y1:y1 + th, x1:x1 + tw]
-                mask = mask[y1:y1 + th, x1:x1 + tw]
-                '''img = img.crop((x1, y1, x1 + tw, y1 + th))
-                mask = mask.crop((x1, y1, x1 + tw, y1 + th))'''
+            img = tmp_img
+            mask = tmp_mask
+        else:
+            x1 = random.randint(0, w - tw)
+            y1 = random.randint(0, h - th)
+            img = img[y1:y1 + th, x1:x1 + tw]
+            mask = mask[y1:y1 + th, x1:x1 + tw]
+            '''img = img.crop((x1, y1, x1 + tw, y1 + th))
+            mask = mask.crop((x1, y1, x1 + tw, y1 + th))'''
         return img, mask
 
 

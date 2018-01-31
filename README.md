@@ -29,4 +29,3 @@ The following repository contains a functional framework to perform semantic seg
   
 ### Actual limitations
 - Datasets are defined in txt files, one for images and gt files for each instance of training validation and test. The txt file must contain the path to the image and have the same line order per image respect to the gt file. This files path must be defined in the ConfigFile.py
-- Multi-GPU is not supported yet.

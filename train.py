@@ -51,7 +51,7 @@ class Train():
                 train_loss.update(loss.data[0], N)
 
                 sys.stdout.log_stop()
-                # prog_bar.update()
+                prog_bar.update()
                 sys.stdout.log_start()
 
                 curr_iter += 1
