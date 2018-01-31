@@ -115,7 +115,10 @@ class fromFileDataset(Dataset):
         if self.cf.shuffle and not valid:
             np.random.shuffle(self.img_indexes)
         if num_images is not None:
-            self.num_images = num_images
+            if len(self.image_names) < self.num_images or num_images == -1:
+                self.num_images = len(self.image_names)
+            else:
+                self.num_images = num_images
         self.indexes = self.img_indexes[:self.num_images]
 
 class fromFileDatasetToPredict(Dataset):
