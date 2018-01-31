@@ -19,7 +19,7 @@ class ProgressBar:
         :param nSteps: Number of updates/epochs that is going to be done
         :param lenBar: Number of characters for the progress bar
         '''
-        self.__nSteps       = nSteps
+        self.__nSteps       = nSteps+1
         self.__lenBar       = lenBar
         self.__step         = 1
         self.__msg          = None
@@ -28,6 +28,7 @@ class ProgressBar:
         self.__vTimes       = []
         self.__index        = 0
         self.__loss         = 0.0
+        self.__funcMsg      = self.__createProgressMsg if self.__lenBar>0 else self.__createProgressMsgNoBar
 
     def update(self, loss=None, is_updated=True, show=True):
         '''
@@ -39,9 +40,11 @@ class ProgressBar:
             if loss is not None:
                 self.__loss = loss
             its             = self.__updateTimes()
-            progress_msg    = self.__createProgressMsg(its)
+            progress_msg    = self.__funcMsg(its)
             if show:
-                sys.stdout.write('\b'*self.__lenLastMsg)
+                sys.stdout.write('\b' * self.__lenLastMsg)
+                sys.stdout.write(' ' * self.__lenLastMsg)
+                sys.stdout.write('\b' * self.__lenLastMsg)
                 sys.stdout.write(progress_msg)
                 sys.stdout.flush()
                 self.__lenLastMsg = len(progress_msg)
@@ -51,6 +54,8 @@ class ProgressBar:
             if is_updated:
                 self.__step = self.__step + 1
         else:
+            print self.__step
+            print self.__nSteps
             print 'WARNING: Progress Bar step is major than the limit established'
 
     def finish_progress(self):
@@ -66,7 +71,7 @@ class ProgressBar:
         '''
         self.__msg = msg
 
-    def __createProgressMsg(self, its):
+    def __createProgressMsgNoBar(self, its):
         '''
         Private. Function to create the message Bar
         :param its: iteration per seconds
@@ -81,14 +86,36 @@ class ProgressBar:
         loss = self.__loss
 
 
-        progressMsg = '[' + ('='*nRepetitions) + (' '*(self.__lenBar - nRepetitions)) + \
-                                '], ' + '%.03f it/s, ' % its + '%.02f%%' % percentage + \
+        progressMsg = '[' + '%.02f%%' % percentage +  '], ' + '%.03f it/s, ' % its + \
                                 ', loss: %.05f:' % loss  + \
                                 ', ETA: %d:' % hours + '%02d:' % mints + "%02.01f" % sec
         if self.__msg != None:
             progressMsg = progressMsg + ', ' + self.__msg
             
             
+        return progressMsg
+
+    def __createProgressMsg(self, its):
+        '''
+        Private. Function to create the message Bar
+        :param its: iteration per seconds
+        :return: String. Return the progress message
+        '''
+        nRepetitions = int(float(self.__lenBar) * float(self.__step) / float(self.__nSteps))
+
+        percentage = 100. * float(self.__step) / float(self.__nSteps)
+
+        [hours, mints, sec] = self.__ETA(self.__nSteps, self.__step, its)
+
+        loss = self.__loss
+
+        progressMsg = '[' + ('=' * nRepetitions) + (' ' * (self.__lenBar - nRepetitions)) + \
+                      '], ' + '%.03f it/s, ' % its + '%.02f%%' % percentage + \
+                      ', loss: %.05f:' % loss + \
+                      ', ETA: %d:' % hours + '%02d:' % mints + "%02.01f" % sec
+        if self.__msg != None:
+            progressMsg = progressMsg + ', ' + self.__msg
+
         return progressMsg
 
     @staticmethod
@@ -140,6 +167,24 @@ Testing class
 '''
 
 if __name__ == '__main__':
+
+
+    print 'Testing small progress bar 5 seconds...'
+    bar = ProgressBar(5,lenBar=0)
+    bar.update(show=False)
+    for i in range(5):
+        time.sleep(1)
+        bar.update()
+
+    print 'Testing large message during 5 seconds...'
+    bar = ProgressBar(5)
+    bar.update(show=False)
+    for i in range(5):
+        time.sleep(1)
+        bar.set_msg('Testing msg after ' + str(i) + ' seconds with a veeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeery looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong message')
+        bar.update()
+
+
     print 'Testing default progress bar 20 seconds...'
     n = 30
     bar = ProgressBar(n)

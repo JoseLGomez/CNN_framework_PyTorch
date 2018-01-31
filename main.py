@@ -17,25 +17,25 @@ from utils.scheduler_builder import scheduler_builder
 
 
 def main():
-    start_time = time.time()
-    # Input arguments
-    parser = argparse.ArgumentParser(description="TensorFlow framework for Semantic Segmentation")
-    parser.add_argument("--config_file",
+	start_time = time.time()
+	# Input arguments
+	parser = argparse.ArgumentParser(description="TensorFlow framework for Semantic Segmentation")
+	parser.add_argument("--config_file",
                         type=str,
                         default='config/configFile.py',
                         help="configuration file path")
 
-    parser.add_argument("--exp_name",
+	parser.add_argument("--exp_name",
                         type=str,
                         default='Sample',
                         help="Experiment name")
 
-    parser.add_argument("--exp_folder",
+	parser.add_argument("--exp_folder",
                         type=str,
                         default='/home/jlgomez/Experiments/',
                         help="Experiment folder path")
 
-    args = parser.parse_args()
+	args = parser.parse_args()
 
     # Prepare configutation
 	print ('Loading configuration ...')

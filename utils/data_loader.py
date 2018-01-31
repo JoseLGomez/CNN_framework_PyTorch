@@ -70,7 +70,7 @@ def has_valid_extension(fname, white_list_formats={'png', 'jpg', 'jpeg',
 
 class fromFileDataset(Dataset):
 
-    def __init__(self, cf, image_txt, gt_txt, num_images, resize, 
+    def __init__(self, cf, image_txt, gt_txt, num_images, resize=None,
                         preprocess=None, transform=None, valid=False):
 
         self.cf = cf
