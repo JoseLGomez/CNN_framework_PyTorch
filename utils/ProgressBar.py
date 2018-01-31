@@ -30,15 +30,14 @@ class ProgressBar:
         self.__loss         = 0.0
         self.__funcMsg      = self.__createProgressMsg if self.__lenBar>0 else self.__createProgressMsgNoBar
 
-    def update(self, loss=None, is_updated=True, show=True):
+
+    def update(self, is_updated=True, show=True):
         '''
         Update the step and display the progress if needed.
         :param is_updated: Bool. True if the step has to increase. True by default
         :param show: Bool. True if the progress bar has to be displayed after the update. True by default.
         '''
         if self.__step  <= self.__nSteps:
-            if loss is not None:
-                self.__loss = loss
             its             = self.__updateTimes()
             progress_msg    = self.__funcMsg(its)
             if show:
@@ -83,12 +82,11 @@ class ProgressBar:
 
         [hours, mints, sec] = self.__ETA(self.__nSteps, self.__step, its)
 
-        loss = self.__loss
-
 
         progressMsg = '[' + '%.02f%%' % percentage +  '], ' + '%.03f it/s, ' % its + \
                                 ', loss: %.05f:' % loss  + \
                                 ', ETA: %d:' % hours + '%02d:' % mints + "%02.01f" % sec
+
         if self.__msg != None:
             progressMsg = progressMsg + ', ' + self.__msg
             

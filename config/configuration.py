@@ -23,13 +23,10 @@ class Configuration():
             cf.predict_path_output = self.exp_folder + 'predictions/'
             if not os.path.exists(cf.predict_path_output):
                 os.makedirs(cf.predict_path_output)
-        # if cf.resize_image_train is not None:
-        #     cf.size_image_train = cf.resize_image_train
-        # if cf.resize_image_valid is not None:
-        #     cf.size_image_valid = cf.resize_image_valid
-        # if cf.resize_image_test is not None:
-        #     cf.original_size = cf.size_image_test
-        #     cf.size_image_test = cf.resize_image_test
+
+        if cf.resize_image_test is not None:
+            cf.original_size = cf.size_image_test
+
         if cf.model_path is None:
             cf.model_path = cf.exp_folder      
         return cf

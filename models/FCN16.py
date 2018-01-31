@@ -1,6 +1,6 @@
 import os.path as osp
 
-import fcn
+#import fcn
 import torch.nn as nn
 
 import torch
@@ -24,16 +24,16 @@ def get_upsampling_weight(in_channels, out_channels, kernel_size):
 
 class FCN16(nn.Module):
 
-    pretrained_model = \
-        osp.expanduser('~/data/models/pytorch/fcn16s_from_caffe.pth')
+    #pretrained_model = \
+    #    osp.expanduser('~/data/models/pytorch/fcn16s_from_caffe.pth')
 
-    @classmethod
+    '''@classmethod
     def download(cls):
         return fcn.data.cached_download(
             url='http://drive.google.com/uc?id=0B9P1L--7Wd2vVGE3TkRMbWlNRms',
             path=cls.pretrained_model,
             md5='991ea45d30d632a01e5ec48002cac617',
-        )
+        )'''
 
     def __init__(self, n_class=21):
         super(FCN16, self).__init__()
