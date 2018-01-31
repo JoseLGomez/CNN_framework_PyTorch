@@ -27,7 +27,6 @@ class ProgressBar:
         self.__lenLastMsg   = 0
         self.__vTimes       = []
         self.__index        = 0
-        self.__loss         = 0.0
         self.__funcMsg      = self.__createProgressMsg if self.__lenBar>0 else self.__createProgressMsgNoBar
 
 
@@ -84,7 +83,6 @@ class ProgressBar:
 
 
         progressMsg = '[' + '%.02f%%' % percentage +  '], ' + '%.03f it/s, ' % its + \
-                                ', loss: %.05f:' % loss  + \
                                 ', ETA: %d:' % hours + '%02d:' % mints + "%02.01f" % sec
 
         if self.__msg != None:
@@ -109,7 +107,6 @@ class ProgressBar:
 
         progressMsg = '[' + ('=' * nRepetitions) + (' ' * (self.__lenBar - nRepetitions)) + \
                       '], ' + '%.03f it/s, ' % its + '%.02f%%' % percentage + \
-                      ', loss: %.05f:' % loss + \
                       ', ETA: %d:' % hours + '%02d:' % mints + "%02.01f" % sec
         if self.__msg != None:
             progressMsg = progressMsg + ', ' + self.__msg
