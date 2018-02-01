@@ -50,7 +50,6 @@ def main():
     logger_debug.write('- Building model: ' + cf.model_name + ' <--- ')
     model = Model_builder(cf)
     model.build()
-    model.net.train() # enable dropout modules and others
 
     # Problem type
     if cf.problem_type == 'segmentation':
@@ -79,6 +78,7 @@ def main():
     scheduler = scheduler_builder().build(cf, optimizer)
 
     if cf.train:
+        model.net.train()  # enable dropout modules and others
         train_time = time.time()
         # Dataloaders
         logger_debug.write('\n- Reading Train dataset: ')
@@ -101,6 +101,7 @@ def main():
 
     if cf.validation:
         valid_time = time.time()
+        model.net.eval()
         if not cf.train:
             logger_debug.write('- Reading Validation dataset: ')
             valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
@@ -116,6 +117,7 @@ def main():
         logger_debug.write('\t Validation step finished: %ds ' % (valid_time))
 
     if cf.test:
+        model.net.eval()
         test_time = time.time()
         logger_debug.write('\n- Reading Test dataset: ')
         test_set = fromFileDataset(cf, cf.test_images_txt, cf.test_gt_txt,
@@ -128,6 +130,7 @@ def main():
         logger_debug.write('\t Test step finished: %ds ' % (test_time))
 
     if cf.predict_test:
+        model.net.eval()
         pred_time = time.time()
         logger_debug.write('\n- Reading Prediction dataset: ')
         predict_set = fromFileDatasetToPredict(cf, cf.test_images_txt,
