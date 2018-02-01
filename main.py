@@ -12,6 +12,7 @@ from models.model_builder import Model_builder
 from utils.data_loader import fromFileDataset, fromFileDatasetToPredict
 from utils.optimizer_builder import Optimizer_builder
 from utils.scheduler_builder import scheduler_builder
+from utils.logger import Logger
 
 
 def main():
@@ -41,13 +42,12 @@ def main():
     cf = config.Load()
 
     # Enable log file
-    #logger_debug = Logger(cf.log_file_debug)
-    #logger_stats = Logger(cf.log_file_stats)
+    logger_debug = Logger(cf.log_file_debug)
 
-    print ('\n ---------- Init experiment: ' + cf.exp_name + ' ---------- \n')
+    logger_debug.write('\n ---------- Init experiment: ' + cf.exp_name + ' ---------- \n')
 
     # Model building
-    print ('- Building model: ' + cf.model_name + ' <--- ')
+    logger_debug.write('- Building model: ' + cf.model_name + ' <--- ')
     model = Model_builder(cf)
     model.build()
     model.net.train() # enable dropout modules and others
@@ -81,13 +81,13 @@ def main():
     if cf.train:
         train_time = time.time()
         # Dataloaders
-        print ('\n- Reading Train dataset: ')
+        logger_debug.write('\n- Reading Train dataset: ')
         train_set = fromFileDataset(cf, cf.train_images_txt, cf.train_gt_txt,
                             cf.train_samples, cf.resize_image_train,
                             preprocess=img_preprocessing, transform=train_transformation)
         train_loader = DataLoader(train_set, batch_size=cf.train_batch_size, num_workers=8)
         if cf.valid_images_txt is not None and cf.valid_gt_txt is not None and cf.valid_samples_epoch > 0:
-            print ('\n- Reading Validation dataset: ')
+            logger_debug.write('\n- Reading Validation dataset: ')
             valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
                                 cf.valid_samples_epoch, cf.resize_image_valid,
                                 preprocess=img_preprocessing, transform=None, valid=True)
@@ -97,12 +97,12 @@ def main():
             # Train without validation inside epoch
             problem_manager.train(criterion, optimizer, train_loader, train_set, scheduler=scheduler)
         train_time = time.time() - train_time
-        print('\t Train step finished: %ds ' % (train_time))
+        logger_debug.write('\t Train step finished: %ds ' % (train_time))
 
     if cf.validation:
         valid_time = time.time()
         if not cf.train:
-            print ('- Reading Validation dataset: ')
+            logger_debug.write('- Reading Validation dataset: ')
             valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
                             cf.valid_samples, cf.resize_image_valid,
                             preprocess=img_preprocessing, transform=None, valid=True)
@@ -110,38 +110,38 @@ def main():
         else:
         #If the Dataloader for validation was used on train, only update the total number of images to take
             valid_set.update_indexes(cf.valid_samples, valid=True) #valid=True avoids shuffle for validation
-        print ('\n- Starting validation <---')
+        logger_debug.write('\n- Starting validation <---')
         problem_manager.validation(criterion, valid_set, valid_loader)
         valid_time = time.time() - valid_time
-        print('\t Validation step finished: %ds ' % (valid_time))
+        logger_debug.write('\t Validation step finished: %ds ' % (valid_time))
 
     if cf.test:
         test_time = time.time()
-        print ('\n- Reading Test dataset: ')
+        logger_debug.write('\n- Reading Test dataset: ')
         test_set = fromFileDataset(cf, cf.test_images_txt, cf.test_gt_txt,
                         cf.test_samples, cf.resize_image_test,
                         preprocess=img_preprocessing, transform=None, valid=True)
         test_loader = DataLoader(test_set, batch_size=cf.test_batch_size, num_workers=8)
-        print ('\n - Starting test <---')
+        logger_debug.write('\n - Starting test <---')
         problem_manager.validation(criterion, test_set, test_loader)
         test_time = time.time() - test_time
-        print('\t Test step finished: %ds ' % (test_time))
+        logger_debug.write('\t Test step finished: %ds ' % (test_time))
 
     if cf.predict_test:
         pred_time = time.time()
-        print ('\n- Reading Prediction dataset: ')
+        logger_debug.write('\n- Reading Prediction dataset: ')
         predict_set = fromFileDatasetToPredict(cf, cf.test_images_txt,
                         cf.test_samples, cf.resize_image_test,
                         preprocess=img_preprocessing)
         predict_loader = DataLoader(predict_set, batch_size=1, num_workers=8)
-        print ('\n - Generating predictions <---')
+        logger_debug.write('\n - Generating predictions <---')
         problem_manager.predict(predict_loader)
         pred_time = time.time() - pred_time
-        print('\t Prediction step finished: %ds ' % (pred_time))
+        logger_debug.write('\t Prediction step finished: %ds ' % (pred_time))
 
     total_time = time.time() - start_time
-    print('\n- Experiment finished: %ds ' % (total_time))
-    print('\n')
+    logger_debug.write('\n- Experiment finished: %ds ' % (total_time))
+    logger_debug.write('\n')
 
 # Entry point of the script
 if __name__ == "__main__":

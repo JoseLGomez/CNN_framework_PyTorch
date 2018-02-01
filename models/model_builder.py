@@ -1,7 +1,10 @@
-import torch
 import os
-from FCdenseNetTorch import FCDenseNet
-from FCN8 import FCN8
+
+import torch
+
+from models.segmentation.FCN8 import FCN8
+from models.segmentation.FCdenseNetTorch import FCDenseNet
+
 
 class Model_builder():
     def __init__(self, cf):

@@ -11,26 +11,36 @@ import operator
 sys.path.append('../')
 from utils.tools import AverageMeter, Early_Stopping
 from utils.ProgressBar import ProgressBar
+from utils.logger import Logger
 from metrics.metrics import compute_stats, compute_mIoU
 
 class SemanticSegmentation_Manager():
     def __init__(self, cf, model):
         self.cf = cf
         self.model = model
+        self.logger_stats = Logger(cf.log_file_stats)
 
     def train(self, criterion, optimizer, train_loader, train_set, valid_set=None, valid_loader=None, scheduler=None):
-        print ('\n- Starting train <---')
+        self.logger_stats.write('\n- Starting train <---')
         train_num_batches = math.ceil(train_set.num_images / float(self.cf.train_batch_size))
         curr_epoch = self.cf.initial_epoch
         # Define early stopping control
         if self.cf.early_stopping:
             early_Stopping = Early_Stopping(self.cf)
+
+        print '\nTotal estimated training time...'
+        global_bar = ProgressBar((self.cf.epochs+1-curr_epoch)*train_num_batches, lenBar=20)
+
+
         # Train process
         for epoch in range(curr_epoch, self.cf.epochs + 1):
             epoch_time = time.time()
-            print ('\t ------ Epoch: ' + str(epoch) + ' ------ \n')
+            self.logger_stats.write('\t ------ Epoch: ' + str(epoch) + ' ------ \n')
             # Progress bar
-            prog_bar = ProgressBar(train_num_batches)
+
+            accum_str = '\n\nEpoch %d/%d estimated time...\n' % (epoch, self.cf.epochs + 1 - curr_epoch)
+            epoch_bar = ProgressBar(train_num_batches, lenBar=20)
+            epoch_bar.update(show=False)
 
             train_loss = AverageMeter()
             curr_iter = (epoch - 1) * len(train_loader)
@@ -51,15 +61,16 @@ class SemanticSegmentation_Manager():
 
                 train_loss.update(loss.data[0], N)
 
-                #sys.stdout.log_stop()
-                # prog_bar.update()
-                #sys.stdout.log_start()
+                epoch_bar.set_msg('loss = ' + str(train_loss.avg))
+                last_str = epoch_bar.get_message(step=True)
+                global_bar.set_msg(accum_str + last_str)
+                global_bar.update()
 
                 curr_iter += 1
                 # writer.add_scalar('train_loss', train_loss.avg, curr_iter)
                 # Display progress
                 if (i + 1) % math.ceil(train_num_batches / 20.) == 0:
-                    print('[Global iteration %d], [iter %d / %d], [train loss %.5f]' % (
+                    self.logger_stats.write('[Global iteration %d], [iter %d / %d], [train loss %.5f]' % (
                         curr_iter, i + 1, len(train_loader), train_loss.avg))
             # validate epoch
             val_loss, acc_cls, mean_IoU = 0, 0, 0
@@ -69,7 +80,7 @@ class SemanticSegmentation_Manager():
                 if self.cf.early_stopping:
                     early_Stopping.check(train_loss.avg, val_loss, mean_IoU, acc_cls)
                     if early_Stopping.stop == True:
-                        print (' Early Stopping Interruption [Epoch: ' + str(epoch) + ' ] \n')
+                        self.logger_stats.write(' Early Stopping Interruption [Epoch: ' + str(epoch) + ' ] \n')
                         return
                 if scheduler is not None:
                     scheduler.step(val_loss)
@@ -81,7 +92,7 @@ class SemanticSegmentation_Manager():
             # Shuffle train data
             train_set.update_indexes()
             epoch_time = time.time() - epoch_time
-            print('\t Epoch step finished: %ds ' % (epoch_time))
+            self.logger_stats.write('\t Epoch step finished: %ds ' % (epoch_time))
 
     def validation(self, criterion, valid_set, valid_loader, epoch=None):
         self.model.net.eval()
@@ -132,21 +143,15 @@ class SemanticSegmentation_Manager():
         fwavacc = 0  # np.mean(fwavacc)
 
         if epoch is not None:
-            print('----------------- Epoch scores summary -------------------------')
-            print('[epoch %d], [val loss %.5f], [acc %.5f], [acc_cls %.5f], [mean_IoU %.5f], [fwavacc %.5f]' % (
+            self.logger_stats.write('----------------- Epoch scores summary -------------------------')
+            self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.5f], [acc_cls %.5f], [mean_IoU %.5f], [fwavacc %.5f]' % (
                 epoch, val_loss.avg, acc, acc_cls, mean_IoU, fwavacc))
-            print('---------------------------------------------------------------- \n')
+            self.logger_stats.write('---------------------------------------------------------------- \n')
         else:
-            print('----------------- Scores summary --------------------')
-            print('[val loss %.5f], [acc %.5f], [acc_cls %.5f], [mean_IoU %.5f], [fwavacc %.5f]' % (
+            self.logger_stats.write('----------------- Scores summary --------------------')
+            self.logger_stats.write('[val loss %.5f], [acc %.5f], [acc_cls %.5f], [mean_IoU %.5f], [fwavacc %.5f]' % (
                 val_loss.avg, acc, acc_cls, mean_IoU, fwavacc))
-            print('---------------------------------------------------------------- \n')
-        '''writer.add_scalar('val_loss', val_loss.avg, epoch)
-        writer.add_scalar('acc', acc, epoch)
-        writer.add_scalar('acc_cls', acc_cls, epoch)
-        writer.add_scalar('mean_IoU', mean_IoU, epoch)
-        writer.add_scalar('fwavacc', fwavacc, epoch)
-        writer.add_scalar('lr', optimizer.param_groups[1]['lr'], epoch)'''
+            self.logger_stats.write('---------------------------------------------------------------- \n')
         return val_loss.avg, acc_cls, mean_IoU
 
     def predict(self, dataloader):
@@ -163,8 +168,9 @@ class SemanticSegmentation_Manager():
             path = os.path.join(self.cf.predict_path_output, img_name[0])
             # scipy.misc.imsave(path,predictions)
             predictions = Image.fromarray(predictions.astype(np.uint8))
-            predictions = predictions.resize((self.cf.original_size[1],
-                                              self.cf.original_size[0]), resample=Image.BILINEAR)
+            if self.cf.resize is not None:
+                predictions = predictions.resize((self.cf.original_size[1],
+                                                  self.cf.original_size[0]), resample=Image.BILINEAR)
             predictions = np.array(predictions)
             cv.imwrite(path, predictions)
-            print('%d / %d' % (vi + 1, len(dataloader)))
+            self.logger_stats.write('%d / %d' % (vi + 1, len(dataloader)))

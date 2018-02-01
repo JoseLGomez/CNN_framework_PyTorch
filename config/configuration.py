@@ -16,6 +16,8 @@ class Configuration():
         cf.exp_name = self.exp_name
         cf.exp_folder = self.exp_folder
         cf.log_file = os.path.join(cf.exp_folder, "logfile.log")
+        cf.log_file_stats = os.path.join(cf.exp_folder, "logfile_stats.log")
+        cf.log_file_debug = os.path.join(cf.exp_folder, "logfile_debug.log")
         # Copy config file
         shutil.copyfile(cf.config_path, os.path.join(cf.exp_folder, "config.py"))
 
