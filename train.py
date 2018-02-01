@@ -154,7 +154,7 @@ class Predict():
         self.dataloader = dataloader
         self.cf = cf
 
-    def start(self, model, criterion):
+    def start(self, model):
         model.net.eval()
 
         for vi, data in enumerate(self.dataloader):

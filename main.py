@@ -1,18 +1,18 @@
-import time
 import argparse
 import sys
+import time
 import torchvision.transforms as standard_transforms
 from torch.utils.data import DataLoader
-from tensorboardX import SummaryWriter
 
-from train import Train, Validation, Predict
-from config.configuration import Configuration
 import utils.preprocessAndTransformations as preprocess
-from utils.data_loader import fromFileDataset, fromFileDatasetToPredict
+from loss.loss_builder import Loss_Builder
+from classification_manager import Classification_Manager
+from config.configuration import Configuration
 from models.model_builder import Model_builder
-from metrics.loss import CrossEntropyLoss2d
-from utils.optimizer_builder import Optimizer_builder
+from semanticSegmentator_manager import SemanticSegmentation_Manager
+from utils.data_loader import fromFileDataset, fromFileDatasetToPredict
 from utils.logger import Logger
+from utils.optimizer_builder import Optimizer_builder
 from utils.scheduler_builder import scheduler_builder
 
 
@@ -43,8 +43,8 @@ def main():
     cf = config.Load()
 
     # Enable log file
-    sys.stdout = Logger(cf.log_file)
-    sys.stdout.log_start()
+    #logger_debug = Logger(cf.log_file_debug)
+    #logger_stats = Logger(cf.log_file_stats)
 
     print ('\n ---------- Init experiment: ' + cf.exp_name + ' ---------- \n')
 
@@ -53,6 +53,14 @@ def main():
     model = Model_builder(cf)
     model.build()
     model.net.train() # enable dropout modules and others
+
+    # Problem type
+    if cf.problem_type == 'segmentation':
+        problem_manager = SemanticSegmentation_Manager(cf, model)
+    elif cf.problem_type == 'classification':
+        problem_manager = Classification_Manager(cf, model)
+    else:
+        raise ValueError('Unknown problem type')
 
     # Compose preprocesing function for dataloaders
     '''img_preprocessing = standard_transforms.Compose([standard_transforms.ToTensor(),
@@ -63,7 +71,8 @@ def main():
                                                preprocess.RandomHorizontalFlip(cf)])
 
     # Loss definition
-    criterion = CrossEntropyLoss2d(size_average=False, ignore_index=cf.void_class).cuda()
+    #criterion = CrossEntropyLoss2d(size_average=False, ignore_index=cf.void_class).cuda()
+    criterion = Loss_Builder(cf).build().cuda()
 
     # Optimizer definition
     optimizer = Optimizer_builder().build(cf, model.net)
@@ -79,16 +88,16 @@ def main():
                             cf.train_samples, cf.resize_image_train,
                             preprocess=img_preprocessing, transform=train_transformation)
         train_loader = DataLoader(train_set, batch_size=cf.train_batch_size, num_workers=8)
-
-        print ('\n- Reading Validation dataset: ')
-        valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
-                            cf.valid_samples_epoch, cf.resize_image_valid,
-                            preprocess=img_preprocessing, transform=None, valid=True)
-        valid_loader = DataLoader(valid_set, batch_size=cf.valid_batch_size, num_workers=8)
-
-        print ('\n- Starting train <---')
-        trainer = Train(cf, train_loader, train_set, valid_set, valid_loader)
-        trainer.start(model, criterion, optimizer, scheduler)
+        if cf.valid_images_txt is not None and cf.valid_gt_txt is not None and cf.valid_samples_epoch > 0:
+            print ('\n- Reading Validation dataset: ')
+            valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
+                                cf.valid_samples_epoch, cf.resize_image_valid,
+                                preprocess=img_preprocessing, transform=None, valid=True)
+            valid_loader = DataLoader(valid_set, batch_size=cf.valid_batch_size, num_workers=8)
+            problem_manager.train(criterion, optimizer, train_loader, train_set, valid_set, valid_loader, scheduler)
+        else:
+            # Train without validation inside epoch
+            problem_manager.train(criterion, optimizer, train_loader, train_set, scheduler=scheduler)
         train_time = time.time() - train_time
         print('\t Train step finished: %ds ' % (train_time))
 
@@ -104,8 +113,7 @@ def main():
         #If the Dataloader for validation was used on train, only update the total number of images to take
             valid_set.update_indexes(cf.valid_samples, valid=True) #valid=True avoids shuffle for validation
         print ('\n- Starting validation <---')
-        validator = Validation(cf, valid_set, valid_loader, cf.valid_batch_size)
-        validator.start(model, criterion)
+        problem_manager.validation(criterion, valid_set, valid_loader)
         valid_time = time.time() - valid_time
         print('\t Validation step finished: %ds ' % (valid_time))
 
@@ -116,10 +124,8 @@ def main():
                         cf.test_samples, cf.resize_image_test,
                         preprocess=img_preprocessing, transform=None, valid=True)
         test_loader = DataLoader(test_set, batch_size=cf.test_batch_size, num_workers=8)
-
         print ('\n - Starting test <---')
-        tester = Validation(cf, test_set, test_loader, cf.test_batch_size)
-        tester.start(model, criterion)
+        problem_manager.validation(criterion, test_set, test_loader)
         test_time = time.time() - test_time
         print('\t Test step finished: %ds ' % (test_time))
 
@@ -130,9 +136,8 @@ def main():
                         cf.test_samples, cf.resize_image_test,
                         preprocess=img_preprocessing)
         predict_loader = DataLoader(predict_set, batch_size=1, num_workers=8)
-        predictor = Predict(cf, predict_loader)
-        predictor.start(model, criterion)
         print ('\n - Generating predictions <---')
+        problem_manager.predict(predict_loader)
         pred_time = time.time() - pred_time
         print('\t Prediction step finished: %ds ' % (pred_time))
 

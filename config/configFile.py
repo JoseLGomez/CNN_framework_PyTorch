@@ -1,3 +1,5 @@
+# Problem type
+problem_type                = 'segmentation' # Option: ['segmentation','classification']
 # Model
 model_type                  = 'FCN8'   # Options: ['DenseNetFCN', 'FCN8']
     ### DenseNetFCN options ####
@@ -19,6 +21,8 @@ save_weight_only            = True            # Recomended true, stores only wei
 model_name                  = 'FCN8'
 model_path                  = '/home/jlgomez/Experiments/DenseNetFCN/' # None uses experiment path by default if pretrained_model is True
 
+# Loss type
+loss_type                   = 'cross_entropy_segmentation' # options: ['cross_entropy_segmentation','focal_segmentation']
 
 # General parameters
 
