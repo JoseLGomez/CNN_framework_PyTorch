@@ -1,17 +1,15 @@
 import argparse
-import sys
 import time
 import torchvision.transforms as standard_transforms
 from torch.utils.data import DataLoader
 
 import utils.preprocessAndTransformations as preprocess
-from loss.loss_builder import Loss_Builder
-from classification_manager import Classification_Manager
+from tasks.semanticSegmentator_manager import SemanticSegmentation_Manager
+from tasks.classification_manager import Classification_Manager
 from config.configuration import Configuration
+from loss.loss_builder import Loss_Builder
 from models.model_builder import Model_builder
-from semanticSegmentator_manager import SemanticSegmentation_Manager
 from utils.data_loader import fromFileDataset, fromFileDatasetToPredict
-from utils.logger import Logger
 from utils.optimizer_builder import Optimizer_builder
 from utils.scheduler_builder import scheduler_builder
 
