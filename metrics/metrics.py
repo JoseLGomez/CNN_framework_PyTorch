@@ -16,36 +16,6 @@ def _fast_hist(label_pred, label_true, num_classes):
     return hist
 
 
-# def evaluate(predictions, gts, num_classes):
-#     hist = np.zeros((num_classes, num_classes))
-#     for lp, lt in zip(predictions, gts):
-#         hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
-#     # axis 0: gt, axis 1: prediction
-#     acc = np.diag(hist).sum() / hist.sum()
-#     acc_cls = np.diag(hist) / (hist.sum(axis=1) + 0.000001)
-#     acc_cls = np.nanmean(acc_cls)
-#     iu = np.diag(hist) / ((hist.sum(axis=1) + 0.000001) + hist.sum(axis=0) - np.diag(hist))
-#     mean_iu = np.nanmean(iu)
-#     freq = hist.sum(axis=1) / hist.sum()
-#     fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
-#     return acc, acc_cls, mean_iu, fwavacc
-
-#
-# def evaluate(predictions, gts, num_classes):
-#     hist = np.zeros((num_classes, num_classes))
-#     for lp, lt in zip(predictions, gts):
-#         hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
-#     # axis 0: gt, axis 1: prediction
-#     acc = np.diag(hist).sum() / hist.sum()
-#     acc_cls = np.diag(hist) / (hist.sum(axis=1) + 0.000001)
-#     acc_cls = np.nanmean(acc_cls)
-#     iu = np.diag(hist) / ((hist.sum(axis=1) + 0.000001) + hist.sum(axis=0) - np.diag(hist))
-#     mean_iu = np.nanmean(iu)
-#     freq = hist.sum(axis=1) / hist.sum()
-#     fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
-#     return acc, acc_cls, mean_iu, fwavacc
-
-
 def compute_stats(inputs,targets,nLabels,invalid_label):
     inputs_list = np.asarray(np.asarray(inputs).flatten())
     targets_list = np.asarray(np.asarray(targets).flatten())
@@ -58,21 +28,22 @@ def compute_stats(inputs,targets,nLabels,invalid_label):
             shape_targets))
 
     TP_list = np.zeros(nLabels)
+    TN_list = np.zeros(nLabels)
     FP_list = np.zeros(nLabels)
     FN_list = np.zeros(nLabels)
     for l in range(nLabels):
         TP = float(np.sum(np.logical_and((targets_list == l),(inputs_list == l))))
+        TN = float(np.sum(np.logical_and(np.logical_and((targets_list != l),(targets_list != invalid_label)), (inputs_list != l))))
         FP = float(np.sum(np.logical_and(np.logical_and((targets_list != l),(targets_list != invalid_label)),(inputs_list == l))))
         FN = float(np.sum(np.logical_and((targets_list == l),(inputs_list != l))))
         TP_list[l] = TP
+        TN_list[l] = TN
         FP_list[l] = FP
         FN_list[l] = FN
-    return TP_list,FP_list,FN_list
+    return TP_list,TN_list,FP_list,FN_list
 
 
 def compute_mIoU(TP_list,FP_list,FN_list):
-
-    #mIoU_list = map(operator.div,TP_list,map(operator.add,TP_list,map(operator.add,FP_list,FN_list)))
 
     mIoU_list = np.zeros_like(TP_list)
     for i in range(len(mIoU_list)):
@@ -80,5 +51,38 @@ def compute_mIoU(TP_list,FP_list,FN_list):
             mIoU_list[i] = 0.0
         else:
             mIoU_list[i] =  (TP_list[i]) / (TP_list[i] + FP_list[i] + FN_list[i])
+
+    return mIoU_list
+
+def compute_precision(TP_list,FP_list):
+
+    precision_list = np.zeros_like(TP_list)
+    for i in range(len(precision_list)):
+        if (TP_list[i] + FP_list[i]) == 0:
+            precision_list[i] = 0.0
+        else:
+            precision_list[i] =  (TP_list[i]) / (TP_list[i] + FP_list[i])
+
+    return precision_list
+
+def compute_recall(TP_list,FN_list):
+
+    recall_list = np.zeros_like(TP_list)
+    for i in range(len(recall_list)):
+        if (TP_list[i] + FN_list[i]) == 0:
+            recall_list[i] = 0.0
+        else:
+            recall_list[i] =  (TP_list[i]) / (TP_list[i] + FN_list[i])
+
+    return recall_list
+
+def compute_accuracy(TP_list,TN_list, FP_list,FN_list):
+
+    mIoU_list = np.zeros_like(TP_list)
+    for i in range(len(mIoU_list)):
+        if (TP_list[i] + TN_list[i] + FP_list[i] + FN_list[i]) == 0:
+            mIoU_list[i] = 0.0
+        else:
+            mIoU_list[i] =  (TP_list[i] + TN_list[i]) / (TP_list[i] + TN_list[i] + FP_list[i] + FN_list[i])
 
     return mIoU_list

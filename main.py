@@ -9,7 +9,7 @@ from tasks.classification_manager import Classification_Manager
 from config.configuration import Configuration
 from loss.loss_builder import Loss_Builder
 from models.model_builder import Model_builder
-from utils.data_loader import fromFileDataset, fromFileDatasetToPredict
+from utils.data_loader import fromFileDataset, fromFileDatasetToPredict, fromFileDatasetClassification
 from utils.optimizer_builder import Optimizer_builder
 from utils.scheduler_builder import scheduler_builder
 from utils.logger import Logger
@@ -82,15 +82,27 @@ def main():
         train_time = time.time()
         # Dataloaders
         logger_debug.write('\n- Reading Train dataset: ')
-        train_set = fromFileDataset(cf, cf.train_images_txt, cf.train_gt_txt,
-                            cf.train_samples, cf.resize_image_train,
-                            preprocess=img_preprocessing, transform=train_transformation)
+        if cf.problem_type =='segmentation':
+            train_set = fromFileDataset(cf, cf.train_images_txt, cf.train_gt_txt,
+                                cf.train_samples, cf.resize_image_train,
+                                preprocess=img_preprocessing, transform=train_transformation)
+        elif cf.problem_type =='classification':
+            train_set = fromFileDatasetClassification(cf, cf.train_images_txt, cf.train_gt_txt,
+                                        cf.train_samples, cf.resize_image_train,
+                                        preprocess=img_preprocessing, transform=train_transformation)
+
         train_loader = DataLoader(train_set, batch_size=cf.train_batch_size, num_workers=8)
-        if cf.valid_images_txt is not None and cf.valid_gt_txt is not None and cf.valid_samples_epoch > 0:
+        if cf.valid_images_txt is not None and cf.valid_gt_txt is not None and cf.valid_samples_epoch != 0:
             logger_debug.write('\n- Reading Validation dataset: ')
-            valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
-                                cf.valid_samples_epoch, cf.resize_image_valid,
-                                preprocess=img_preprocessing, transform=None, valid=True)
+            if cf.problem_type == 'segmentation':
+                valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
+                                    cf.valid_samples_epoch, cf.resize_image_valid,
+                                    preprocess=img_preprocessing, transform=None, valid=True)
+            elif cf.problem_type == 'classification':
+                valid_set = fromFileDatasetClassification(cf, cf.valid_images_txt, cf.valid_gt_txt,
+                                    cf.valid_samples_epoch, cf.resize_image_valid,
+                                    preprocess=img_preprocessing, transform=None, valid=True)
+
             valid_loader = DataLoader(valid_set, batch_size=cf.valid_batch_size, num_workers=8)
             problem_manager.trainer.start(criterion, optimizer, train_loader, train_set, valid_set, valid_loader, scheduler)
         else:
@@ -104,9 +116,14 @@ def main():
         model.net.eval()
         if not cf.train:
             logger_debug.write('- Reading Validation dataset: ')
-            valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
-                            cf.valid_samples, cf.resize_image_valid,
-                            preprocess=img_preprocessing, transform=None, valid=True)
+            if cf.problem_type == 'segmentation':
+                valid_set = fromFileDataset(cf, cf.valid_images_txt, cf.valid_gt_txt,
+                                cf.valid_samples, cf.resize_image_valid,
+                                preprocess=img_preprocessing, transform=None, valid=True)
+            elif cf.problem_type == 'classification':
+                valid_set = fromFileDatasetClassification(cf, cf.valid_images_txt, cf.valid_gt_txt,
+                                            cf.valid_samples, cf.resize_image_valid,
+                                            preprocess=img_preprocessing, transform=None, valid=True)
             valid_loader = DataLoader(valid_set, batch_size=cf.valid_batch_size, num_workers=8)
         else:
         #If the Dataloader for validation was used on train, only update the total number of images to take
@@ -120,9 +137,14 @@ def main():
         model.net.eval()
         test_time = time.time()
         logger_debug.write('\n- Reading Test dataset: ')
-        test_set = fromFileDataset(cf, cf.test_images_txt, cf.test_gt_txt,
-                        cf.test_samples, cf.resize_image_test,
-                        preprocess=img_preprocessing, transform=None, valid=True)
+        if cf.problem_type == 'segmentation':
+            test_set = fromFileDataset(cf, cf.test_images_txt, cf.test_gt_txt,
+                            cf.test_samples, cf.resize_image_test,
+                            preprocess=img_preprocessing, transform=None, valid=True)
+        elif cf.problem_type == 'classification':
+            test_set = fromFileDatasetClassification(cf, cf.test_images_txt, cf.test_gt_txt,
+                                       cf.test_samples, cf.resize_image_test,
+                                       preprocess=img_preprocessing, transform=None, valid=True)
         test_loader = DataLoader(test_set, batch_size=cf.test_batch_size, num_workers=8)
         logger_debug.write('\n - Starting test <---')
         problem_manager.validator.start(criterion, test_set, test_loader)
