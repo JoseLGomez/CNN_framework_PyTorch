@@ -92,10 +92,10 @@ def main():
                                 cf.valid_samples_epoch, cf.resize_image_valid,
                                 preprocess=img_preprocessing, transform=None, valid=True)
             valid_loader = DataLoader(valid_set, batch_size=cf.valid_batch_size, num_workers=8)
-            problem_manager.train(criterion, optimizer, train_loader, train_set, valid_set, valid_loader, scheduler)
+            problem_manager.trainer.start(criterion, optimizer, train_loader, train_set, valid_set, valid_loader, scheduler)
         else:
             # Train without validation inside epoch
-            problem_manager.train(criterion, optimizer, train_loader, train_set, scheduler=scheduler)
+            problem_manager.trainer.start(criterion, optimizer, train_loader, train_set, scheduler=scheduler)
         train_time = time.time() - train_time
         logger_debug.write('\t Train step finished: %ds ' % (train_time))
 
@@ -112,7 +112,7 @@ def main():
         #If the Dataloader for validation was used on train, only update the total number of images to take
             valid_set.update_indexes(cf.valid_samples, valid=True) #valid=True avoids shuffle for validation
         logger_debug.write('\n- Starting validation <---')
-        problem_manager.validation(criterion, valid_set, valid_loader)
+        problem_manager.validator.start(criterion, valid_set, valid_loader)
         valid_time = time.time() - valid_time
         logger_debug.write('\t Validation step finished: %ds ' % (valid_time))
 
@@ -125,7 +125,7 @@ def main():
                         preprocess=img_preprocessing, transform=None, valid=True)
         test_loader = DataLoader(test_set, batch_size=cf.test_batch_size, num_workers=8)
         logger_debug.write('\n - Starting test <---')
-        problem_manager.validation(criterion, test_set, test_loader)
+        problem_manager.validator.start(criterion, test_set, test_loader)
         test_time = time.time() - test_time
         logger_debug.write('\t Test step finished: %ds ' % (test_time))
 
@@ -138,7 +138,7 @@ def main():
                         preprocess=img_preprocessing)
         predict_loader = DataLoader(predict_set, batch_size=1, num_workers=8)
         logger_debug.write('\n - Generating predictions <---')
-        problem_manager.predict(predict_loader)
+        problem_manager.predict.start(predict_loader)
         pred_time = time.time() - pred_time
         logger_debug.write('\t Prediction step finished: %ds ' % (pred_time))
 
