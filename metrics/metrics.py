@@ -78,11 +78,36 @@ def compute_recall(TP_list,FN_list):
 
 def compute_accuracy(TP_list,TN_list, FP_list,FN_list):
 
-    mIoU_list = np.zeros_like(TP_list)
-    for i in range(len(mIoU_list)):
+    accuracy_list = np.zeros_like(TP_list)
+    for i in range(len(accuracy_list)):
         if (TP_list[i] + TN_list[i] + FP_list[i] + FN_list[i]) == 0:
-            mIoU_list[i] = 0.0
+            accuracy_list[i] = 0.0
         else:
-            mIoU_list[i] =  (TP_list[i] + TN_list[i]) / (TP_list[i] + TN_list[i] + FP_list[i] + FN_list[i])
+            accuracy_list[i] =  (TP_list[i] + TN_list[i]) / (TP_list[i] + TN_list[i] + FP_list[i] + FN_list[i])
 
-    return mIoU_list
+    return accuracy_list
+
+def compute_accuracy_segmentation(TP_list, FN_list):
+
+    accuracy_list = np.zeros_like(TP_list)
+    for i in range(len(accuracy_list)):
+        if (TP_list[i] + FN_list[i]) == 0:
+            accuracy_list[i] = 0.0
+        else:
+            accuracy_list[i] = (TP_list[i]) / (TP_list[i] + FN_list[i])
+
+    return accuracy_list
+
+def compute_f1score(TP_list,FP_list,FN_list):
+
+    recall_list = compute_precision(TP_list, FN_list)
+    precision_list = compute_precision(TP_list, FP_list)
+
+    f1_score_list = np.zeros_like(TP_list)
+    for i in range(len(f1_score_list)):
+        if (precision_list[i] + recall_list[i]) == 0:
+            f1_score_list[i] = 0.0
+        else:
+            f1_score_list[i] =  2.0 * (recall_list[i] + precision_list[i]) / (recall_list[i] + precision_list[i])
+
+    return f1_score_list

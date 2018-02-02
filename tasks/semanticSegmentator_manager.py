@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 sys.path.append('../')
-from metrics.metrics import compute_stats, compute_mIoU, compute_accuracy
+from metrics.metrics import compute_stats, compute_mIoU, compute_accuracy_segmentation
 from simple_trainer_manager import SimpleTrainer
 
 class SemanticSegmentation_Manager(SimpleTrainer):
@@ -53,7 +53,7 @@ class SemanticSegmentation_Manager(SimpleTrainer):
 
         def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
             mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
-            mean_accuracy = compute_accuracy(TP_list, TN_list, FP_list, FN_list)
+            mean_accuracy = compute_accuracy_segmentation(TP_list, FN_list)
             self.stats.val.acc = np.mean(mean_accuracy)
             self.stats.val.mIoU = np.mean(mean_IoU)
             self.stats.val.loss = val_loss.avg
