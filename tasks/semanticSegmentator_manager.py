@@ -14,17 +14,17 @@ class SemanticSegmentation_Manager(SimpleTrainer):
         super(SemanticSegmentation_Manager, self).__init__(cf, model)
 
     class train(SimpleTrainer.train):
-        def __init__(self, logger_stats, model, cf, validator, stats):
-            super(SemanticSegmentation_Manager.train, self).__init__(logger_stats, model, cf, validator, stats)
+        def __init__(self, logger_stats, model, cf, validator, stats, msg):
+            super(SemanticSegmentation_Manager.train, self).__init__(logger_stats, model, cf, validator, stats, msg)
             self.best_IoU = 0
 
-        def validate_epoch(self, valid_set, valid_loader, criterion, early_Stopping, epoch):
+        def validate_epoch(self, valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar):
 
             if valid_set is not None and valid_loader is not None:
                 # Set model in validation mode
                 self.model.net.eval()
 
-                self.validator.start(criterion, valid_set, valid_loader, epoch)
+                self.validator.start(criterion, valid_set, valid_loader, epoch, global_bar=global_bar)
 
                 # Early stopping checking
                 if self.cf.early_stopping:
@@ -42,19 +42,19 @@ class SemanticSegmentation_Manager(SimpleTrainer):
             self.logger_stats.write('\t Epoch step finished: %ds ' % (epoch_time))
 
             # Compute best stats
-            self.msg_stats_last = '\nLast epoch: mIoU = %.2f, acc= %.2f, loss = %.5f\n' % (
+            self.msg.msg_stats_last = '\nLast epoch: mIoU = %.2f, acc= %.2f, loss = %.5f\n' % (
             100 * self.stats.val.mIoU, 100 * self.stats.val.acc, self.stats.val.loss)
             if self.best_IoU < self.stats.val.mIoU:
-                self.msg_stats_best = 'Best case: epoch = %d, mIoU = %.2f, acc= %.2f, loss = %.5f\n' % (
+                self.msg.msg_stats_best = 'Best case: epoch = %d, mIoU = %.2f, acc= %.2f, loss = %.5f\n' % (
                     epoch, 100 * self.stats.val.mIoU, 100 * self.stats.val.acc, self.stats.val.loss)
                 self.best_IoU = self.stats.val.mIoU
 
                 msg_confm = self.stats.val.get_confm_str()
-                self.msg_stats_best = self.msg_stats_best + '\nConfusion matrix:\n' + msg_confm
+                self.msg.msg_stats_best = self.msg.msg_stats_best + '\nConfusion matrix:\n' + msg_confm
 
     class validation(SimpleTrainer.validation):
-        def __init__(self, logger_stats, model, cf, stats):
-            super(SemanticSegmentation_Manager.validation, self).__init__(logger_stats, model, cf, stats)
+        def __init__(self, logger_stats, model, cf, stats, msg):
+            super(SemanticSegmentation_Manager.validation, self).__init__(logger_stats, model, cf, stats, msg)
 
         def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
             mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
