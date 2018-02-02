@@ -160,7 +160,7 @@ def main():
                         preprocess=img_preprocessing)
         predict_loader = DataLoader(predict_set, batch_size=1, num_workers=8)
         logger_debug.write('\n - Generating predictions <---')
-        problem_manager.predict.start(predict_loader)
+        problem_manager.predictor.start(predict_loader)
         pred_time = time.time() - pred_time
         logger_debug.write('\t Prediction step finished: %ds ' % (pred_time))
 

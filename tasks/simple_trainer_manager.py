@@ -2,10 +2,7 @@ import math
 import sys
 import time
 import numpy as np
-import cv2 as cv
-import os
 from torch.autograd import Variable
-from PIL import Image
 import operator
 
 sys.path.append('../')
@@ -13,7 +10,7 @@ from utils.tools import AverageMeter, Early_Stopping
 from utils.ProgressBar import ProgressBar
 from utils.logger import Logger
 from utils.statistics import Statistics
-from metrics.metrics import compute_stats, compute_accuracy
+from metrics.metrics import compute_stats, compute_accuracy, compute_confusion_matrix
 
 class SimpleTrainer(object):
     def __init__(self, cf, model):
@@ -49,8 +46,9 @@ class SimpleTrainer(object):
             else:
                 early_Stopping = None
 
-            print '\nTotal estimated training time...'
+            prev_msg = '\nTotal estimated training time...\n'
             global_bar = ProgressBar((self.cf.epochs+1-self.curr_epoch)*train_num_batches, lenBar=20)
+            global_bar.set_prev_msg(prev_msg)
 
 
             # Train process
@@ -139,6 +137,10 @@ class SimpleTrainer(object):
             if self.best_acc < self.stats.val.mIoU:
                 self.msg_stats_best = 'Best case: epoch = %d, acc = %.2f, loss = %.5f\n' % (
                 epoch, 100 * self.stats.val.acc, self.stats.val.loss)
+
+                msg_confm = self.stats.val.get_confm_str()
+                self.msg_stats_best = self.msg_stats_best + msg_confm
+
                 self.best_acc = self.stats.val.acc
 
         def update_epoch_messages(self, epoch_bar, global_bar, accum_str, train_num_batches,epoch, batch):
@@ -167,6 +169,7 @@ class SimpleTrainer(object):
         def start(self, criterion, valid_set, valid_loader, epoch=None):
             TP_list, TN_list, FP_list, FN_list = np.zeros(self.cf.num_classes), np.zeros(self.cf.num_classes), \
                                                  np.zeros(self.cf.num_classes), np.zeros(self.cf.num_classes)
+            confm_list = np.zeros((self.cf.num_classes,self.cf.num_classes))
 
             val_loss = AverageMeter()
 
@@ -180,11 +183,7 @@ class SimpleTrainer(object):
 
                 # Predict model
                 outputs = self.model.net(inputs)
-                predictions = outputs.data.max(1)
-                predictions = predictions[1]
-                predictions = predictions.cpu().numpy()
-
-                # predictions = outputs.data.max(1)[1].squeeze_(1).cpu().numpy()
+                predictions = outputs.data.max(1)[1].cpu().numpy()
 
                 # Compute batch stats
                 val_loss.update(criterion(outputs, gts).data[0] / n_images, n_images)
@@ -193,12 +192,17 @@ class SimpleTrainer(object):
                 TN_list = map(operator.add, TN_list, TN)
                 FN_list = map(operator.add, FN_list, FN)
                 FP_list = map(operator.add, FP_list, FP)
+                confm = compute_confusion_matrix(predictions,gts.cpu().data.numpy(),self.cf.num_classes,self.cf.void_class)
+                confm_list = map(operator.add, confm_list, confm)
 
             # Compute stats
             self.compute_stats(TP_list, TN_list, FP_list, FN_list,val_loss)
+            # confm_list = map(list, zip(*confm_list))
+            confm_list = [[0 if np.sum(row)==0 else el/np.sum(row) for el in row] for row in confm_list]
 
             # Save stats
             self.save_stats(epoch)
+            self.stats.val.conf_m = confm_list
 
         def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
             mean_accuracy = compute_accuracy(TP_list, TN_list, FP_list, FN_list)
@@ -233,13 +237,11 @@ class SimpleTrainer(object):
                 inputs = Variable(inputs, volatile=True).cuda()
 
                 outputs = self.model.net(inputs)
-                predictions = outputs.data.max(1)[1].squeeze_(1).squeeze_(0).cpu().numpy()
+                predictions = outputs.data.max(1)[1].cpu().numpy()
 
-                path = os.path.join(self.cf.predict_path_output, img_name[0])
-                predictions = Image.fromarray(predictions.astype(np.uint8))
-                if self.cf.resize is not None:
-                    predictions = predictions.resize((self.cf.original_size[1],
-                                                      self.cf.original_size[0]), resample=Image.BILINEAR)
-                predictions = np.array(predictions)
-                cv.imwrite(path, predictions)
+                self.write_results(predictions,img_name)
+
                 self.logger_stats.write('%d / %d' % (vi + 1, len(dataloader)))
+
+        def write_results(self,predictions, img_name):
+                pass

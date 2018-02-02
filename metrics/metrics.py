@@ -108,6 +108,23 @@ def compute_f1score(TP_list,FP_list,FN_list):
         if (precision_list[i] + recall_list[i]) == 0:
             f1_score_list[i] = 0.0
         else:
-            f1_score_list[i] =  2.0 * (recall_list[i] + precision_list[i]) / (recall_list[i] + precision_list[i])
+            f1_score_list[i] =  2.0 * (recall_list[i] * precision_list[i]) / (recall_list[i] + precision_list[i])
 
     return f1_score_list
+
+def compute_confusion_matrix(inputs,targets,nLabels,invalid_label):
+
+    inputs_list = np.asarray(np.asarray(inputs).flatten())
+    targets_list = np.asarray(np.asarray(targets).flatten())
+    num_samples = np.zeros(nLabels)
+
+    conf_m = np.zeros((nLabels,nLabels))
+
+    for i in range(nLabels): # gt
+        for j in range(nLabels): # predictions
+            if np.sum(targets_list == i) == 0:
+                conf_m[i, j] = 0
+            else:
+                conf_m[i,j] = float(np.sum(np.logical_and((targets_list == i),(inputs_list == j))))/np.sum(targets_list == i)
+
+    return conf_m

@@ -1,7 +1,9 @@
-import math
 import sys
 import time
 import numpy as np
+import os
+from PIL import Image
+import cv2 as cv
 
 sys.path.append('../')
 from metrics.metrics import compute_stats, compute_mIoU, compute_accuracy_segmentation
@@ -47,6 +49,9 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                     epoch, 100 * self.stats.val.mIoU, 100 * self.stats.val.acc, self.stats.val.loss)
                 self.best_IoU = self.stats.val.mIoU
 
+                msg_confm = self.stats.val.get_confm_str()
+                self.msg_stats_best = self.msg_stats_best + '\nConfusion matrix:\n' + msg_confm
+
     class validation(SimpleTrainer.validation):
         def __init__(self, logger_stats, model, cf, stats):
             super(SemanticSegmentation_Manager.validation, self).__init__(logger_stats, model, cf, stats)
@@ -55,6 +60,7 @@ class SemanticSegmentation_Manager(SimpleTrainer):
             mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
             mean_accuracy = compute_accuracy_segmentation(TP_list, FN_list)
             self.stats.val.acc = np.mean(mean_accuracy)
+            self.stats.val.mIoU_perclass = mean_IoU
             self.stats.val.mIoU = np.mean(mean_IoU)
             self.stats.val.loss = val_loss.avg
 
@@ -70,3 +76,17 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                 self.logger_stats.write('[val loss %.5f], [acc %.2f], [mean_IoU %.2f]' % (
                     self.stats.val.loss, 100 * self.stats.val.acc, 100 * self.stats.val.mIoU))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
+
+    class predict(SimpleTrainer.predict):
+        def __init__(self, logger_stats, model, cf):
+            super(SemanticSegmentation_Manager.predict, self).__init__(logger_stats, model, cf)
+
+        def write_results(self,predictions, img_name):
+                path = os.path.join(self.cf.predict_path_output, img_name[0])
+                predictions = predictions[0]
+                predictions = Image.fromarray(predictions.astype(np.uint8))
+                if self.cf.resize_image_test is not None:
+                    predictions = predictions.resize((self.cf.original_size[1],
+                                                      self.cf.original_size[0]), resample=Image.BILINEAR)
+                predictions = np.array(predictions)
+                cv.imwrite(path, predictions)

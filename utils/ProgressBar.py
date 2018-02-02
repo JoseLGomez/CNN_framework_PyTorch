@@ -25,6 +25,7 @@ class ProgressBar:
         self.__lenBar = lenBar
         self.__step = 1
         self.__msg = None
+        self.__prev_msg = None
         self.__start_time = time.time()
         self.__lenLastMsg = 0
         self.__vTimes = []
@@ -47,36 +48,14 @@ class ProgressBar:
             progress_msg = self.__funcMsg(its)
             if show:
 
-                self.__remove_last_msg()
-
-                rows, columns = os.popen('stty size', 'r').read().split()
                 msg_endl = progress_msg.split('\n')
 
-                columns = int(columns) - 1
-
-                self.__lastLens = []
-                for msg in msg_endl:
-                    init_msg = 0
-                    len_msg = 0
-
-                    if len(msg)==0:
-                        msg_wrote = '\n'
-                        self.__lastLens.append(len(msg_wrote))
-                        sys.stdout.write(msg_wrote)
-                    else:
-                        while (init_msg < len(msg)):
-                            end_msg = len_msg + min(len(msg) - init_msg, columns)
-                            len_msg = end_msg - init_msg
-                            if len_msg <0:
-                                break
-
-                            msg_wrote = msg[init_msg:end_msg] + '\n'
-                            self.__lastLens.append(len(msg_wrote))
-                            sys.stdout.write(msg_wrote)
-
-                            init_msg = init_msg + len_msg
-
+                msg_list, msg_lens = self.__split_msg(msg_endl)
+                self.__remove_last_msg()
+                for msg in msg_list:
+                    sys.stdout.write(msg)
                 sys.stdout.flush()
+                self.__lastLens = msg_lens
 
                 if self.__step == self.__nSteps:
                     print ''
@@ -101,6 +80,42 @@ class ProgressBar:
         '''
         self.__msg = msg
 
+    def set_prev_msg(self, msg):
+        '''
+        Function to add a message. This message will be added at the end when displaying the bar.
+        :param msg: String. Message
+        '''
+        self.__prev_msg = msg
+
+    def __split_msg(self, msg_endl):
+        list_msgs = []
+        list_lens = []
+
+        rows, columns = os.popen('stty size', 'r').read().split()
+        columns = int(columns) - 1
+
+        for msg in msg_endl:
+            init_msg = 0
+            len_msg = 0
+
+            if len(msg) == 0:
+                msg_wrote = '\n'
+                list_lens.append(len(msg_wrote))
+                list_msgs.append(msg_wrote)
+            else:
+                while (init_msg < len(msg)):
+                    end_msg = len_msg + min(len(msg) - init_msg, columns)
+                    len_msg = end_msg - init_msg
+                    if len_msg < 0:
+                        break
+
+                    msg_wrote = msg[init_msg:end_msg] + '\n'
+                    list_lens.append(len(msg_wrote))
+                    list_msgs.append(msg_wrote)
+
+                    init_msg = init_msg + len_msg
+        return list_msgs, list_lens
+
     def __remove_last_msg(self):
 
         if self.__lastLens != []:
@@ -110,7 +125,6 @@ class ProgressBar:
                 if len_msg>0:
                     sys.stdout.write(' ' * len_msg)
                     sys.stdout.write('\b' * len_msg)
-            sys.stdout.flush()
 
     def __createProgressMsgNoBar(self, its):
         '''
@@ -126,7 +140,12 @@ class ProgressBar:
 
         loss = self.__loss
 
-        progressMsg = '[' + '%.02f%%' % percentage + '], ' + '%.03f it/s, ' % its + \
+        if self.__prev_msg==None:
+            progressMsg = ''
+        else:
+            progressMsg = self.__prev_msg
+
+        progressMsg = progressMsg + '[' + '%.02f%%' % percentage + '], ' + '%.03f it/s, ' % its + \
                       ', ETA: %d:' % hours + '%02d:' % mints + "%02.01f" % sec
         if self.__msg != None:
             progressMsg = progressMsg + ', ' + self.__msg
@@ -147,7 +166,12 @@ class ProgressBar:
 
         loss = self.__loss
 
-        progressMsg = '[' + ('=' * nRepetitions) + (' ' * (self.__lenBar - nRepetitions)) + \
+        if self.__prev_msg==None:
+            progressMsg = ''
+        else:
+            progressMsg = self.__prev_msg
+
+        progressMsg = progressMsg + '[' + ('=' * nRepetitions) + (' ' * (self.__lenBar - nRepetitions)) + \
                       '], ' + '%.03f it/s, ' % its + '%.02f%%' % percentage + \
                       ', ETA: %d:' % hours + '%02d:' % mints + "%02.01f" % sec
         if self.__msg != None:

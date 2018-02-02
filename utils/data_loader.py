@@ -164,8 +164,15 @@ class fromFileDatasetClassification(Dataset):
             image_names = f.readlines()
         # remove whitespace characters like `\n` at the end of each line
         lines = [x.strip() for x in image_names]
-        self.image_names = [line.split(' ')[0] for line in lines]
-        self.gt = [int(line.split(' ')[1]) for line in lines]
+        self.image_names = lines
+
+        print ("\t gt from: " + gt_txt)
+        with open(gt_txt) as f:
+            gt = f.readlines()
+        # remove whitespace characters like `\n` at the end of each line
+        lines = [x.strip() for x in gt]
+        self.gt = [int(line) for line in lines]
+
         if len(self.gt) != len(self.image_names):
             raise ValueError('number of images != number GT images')
         print ("\t Images found: " + str(len(self.image_names)))
