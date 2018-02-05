@@ -16,10 +16,11 @@ basic_pretrained_model      = '/home/jlgomez/Repositories/PyTorchFramework/pretr
 
     ### load/store options
 pretrained_model            = False           # True to use a custom pretrained model or restore experiment
+input_model_path            = None            # Path and pretrained file to load [None uses experiment path and model name by default]
 load_weight_only            = True            # Recomended true, loads only weights and parameters
 save_weight_only            = True            # Recomended true, stores only weights and parameters
-model_name                  = 'FCN8'
-model_path                  = '/home/jlgomez/Experiments/DenseNetFCN/' # None uses experiment path by default if pretrained_model is True
+model_name                  = 'FCN8'          # Name of the model to store
+output_model_path           = None            # Path to store the model using model_name [None uses the default experiment path]
 
 # Loss type
 loss_type                   = 'cross_entropy_segmentation' # options: ['cross_entropy_segmentation','focal_segmentation']
@@ -61,12 +62,12 @@ test_gt_txt                 = '/home/jlgomez/Datasets/Splits/cityscapes_valid_gt
                                                             'info', 'sky', 'buildings', 'nature'] '''
 num_classes                 = 19
 shuffle                     = True
-void_class                  = 255 #void id or value on the image
+void_class                  = 255   # void id or value on the image
 
 # Training
-epochs                      = 2 #Max number of epochs
-initial_epoch               = 1 #Defines the starting epoch number 
-valid_samples_epoch         = 10 # Number of validation images used to validate an epoch
+epochs                      = 2     # Max number of epochs, use 0 to save directly a model, useful to make conversions
+initial_epoch               = 1     # Defines the starting epoch number
+valid_samples_epoch         = 10    # Number of validation images used to validate an epoch
 is_training                 = True
     ### Optimizer ###
 optimizer                   = 'SGD'
@@ -76,11 +77,11 @@ learning_rate               = 1.0e-4
 learning_rate_bias          = 1.0e-4
 weight_decay                = 0.0005
     ### Scheduler
-scheduler                   = 'ReduceLROnPlateau' #['ReduceLROnPlateau','Step','MultiStep','Exponential', None]
-decay                       = 0.1   #Learnng rate decay to apply (lr*decay)
-sched_patience              = 5 # ReduceLROnPlateau option: epoch patience without loss change until a lr decrement
-step_size                   = 20 #Step option: epoch counter to decrease lr
-milestone                   = [60,30,10] #MultiStep option: define different milestones (epochs) to decrease lr
+scheduler                   = 'ReduceLROnPlateau' # ['ReduceLROnPlateau','Step','MultiStep','Exponential', None]
+decay                       = 0.1   # Learnng rate decay to apply (lr*decay)
+sched_patience              = 5     # ReduceLROnPlateau option: epoch patience without loss change until a lr decrement
+step_size                   = 20    # Step option: epoch counter to decrease lr
+milestone                   = [60,30,10] # MultiStep option: define different milestones (epochs) to decrease lr
     ### Save criteria
 save_condition              = 'valid_mIoU'        # ['always','(x)_loss','(x)_mAcc','(x)_mIoU'] x = valid or train_loss
     ### Early Stopping

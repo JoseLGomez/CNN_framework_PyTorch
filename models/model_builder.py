@@ -36,18 +36,18 @@ class Model_builder():
             self.net = self.restore_weights(self.net)
 
     def restore_weights(self, net):
-        print('\t Restoring model from ' + self.cf.model_path + self.cf.model_name)
-        net.load_state_dict(torch.load(os.path.join(self.cf.model_path, self.cf.model_name + '.pth')))           
+        print('\t Restoring model from ' + self.cf.input_model_path)
+        net.load_state_dict(torch.load(os.path.join(self.cf.input_model_path)))
         return net
 
     def restore_model(self):
-        print('\t Restoring weight from ' + self.cf.model_path + self.cf.model_name)
-        net = torch.load(os.path.join(self.cf.model_path, self.cf.model_name + '.pth'))
+        print('\t Restoring weight from ' + self.cf.input_model_path + self.cf.model_name)
+        net = torch.load(os.path.join(self.cf.input_model_path, self.cf.model_name + '.pth'))
         return net
 
     def save_model(self, net):
         if self.cf.save_weight_only:
-            torch.save(net.state_dict(), os.path.join(self.cf.exp_folder, 
+            torch.save(net.state_dict(), os.path.join(self.cf.output_model_path,
                 self.cf.model_name + '.pth'))
             #torch.save(optimizer.state_dict(), os.path.join(self.cf.exp_folder, 
                 #self.cf.model_name, 'opt.pth'))

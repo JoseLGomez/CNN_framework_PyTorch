@@ -27,6 +27,11 @@ class Configuration():
                 os.makedirs(cf.predict_path_output)
         cf.original_size = cf.size_image_test
 
-        if cf.model_path is None:
-            cf.model_path = cf.exp_folder      
+        if cf.input_model_path is None:
+            cf.input_model_path = cf.exp_folder + cf.model_name + '.pth'
+        if cf.output_model_path is None:
+            cf.output_model_path = cf.exp_folder
+        else:
+            if not os.path.exists(cf.output_model_path):
+                os.makedirs(cf.output_model_path)
         return cf

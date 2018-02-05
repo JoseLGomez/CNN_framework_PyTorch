@@ -111,6 +111,10 @@ class SimpleTrainer(object):
                 if self.stop:
                     return
 
+            # Save model without training
+            if self.cf.epochs == 0:
+                self.model.save_model(self.model.net)
+
         def validate_epoch(self,valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar):
 
             if valid_set is not None and valid_loader is not None:
