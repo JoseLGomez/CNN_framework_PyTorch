@@ -6,7 +6,7 @@ from PIL import Image
 import cv2 as cv
 
 sys.path.append('../')
-from metrics.metrics import compute_stats, compute_mIoU, compute_accuracy_segmentation
+from metrics.metrics import compute_mIoU, compute_accuracy_segmentation, extract_stats_from_confm
 from simple_trainer_manager import SimpleTrainer
 
 class SemanticSegmentation_Manager(SimpleTrainer):
@@ -59,10 +59,11 @@ class SemanticSegmentation_Manager(SimpleTrainer):
         def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
             mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
             mean_accuracy = compute_accuracy_segmentation(TP_list, FN_list)
-            self.stats.val.acc = np.mean(mean_accuracy)
+            self.stats.val.acc = np.nanmean(mean_accuracy)
             self.stats.val.mIoU_perclass = mean_IoU
-            self.stats.val.mIoU = np.mean(mean_IoU)
-            self.stats.val.loss = val_loss.avg
+            self.stats.val.mIoU = np.nanmean(mean_IoU)
+            if val_loss is not None:
+                self.stats.val.loss = val_loss.avg
 
         def save_stats(self, epoch):
             # Save logger
@@ -76,6 +77,21 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                 self.logger_stats.write('[val loss %.5f], [acc %.2f], [mean_IoU %.2f]' % (
                     self.stats.val.loss, 100 * self.stats.val.acc, 100 * self.stats.val.mIoU))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
+
+        def update_msg(self, bar, global_bar):
+
+            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(np.asarray(self.stats.val.conf_m))
+            self.compute_stats(TP_list, TN_list, FP_list, FN_list, None)
+            mIoU = compute_mIoU(TP_list, FP_list, FN_list)
+            bar.set_msg(', mIoU: %.02f' % (100.*np.nanmean(mIoU)))
+
+            if global_bar==None:
+                # Update progress bar
+                bar.update()
+            else:
+                self.msg.eval_str = '\n' + bar.get_message(step=True)
+                global_bar.set_msg(self.msg.accum_str + self.msg.last_str + self.msg.msg_stats_last + self.msg.msg_stats_best + self.msg.eval_str)
+                global_bar.update()
 
     class predict(SimpleTrainer.predict):
         def __init__(self, logger_stats, model, cf):

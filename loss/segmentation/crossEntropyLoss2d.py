@@ -22,7 +22,7 @@ class CrossEntropyLoss2d(Semantic_Loss):
 
         loss = F.nll_loss(log_p, targets, weight=None, size_average=False)
 
-        # if self.size_average:
-        loss /= mask.data.sum()
+        if self.size_average:
+            loss /= mask.data.sum()
 
         return loss.mean()

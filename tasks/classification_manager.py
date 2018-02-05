@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 sys.path.append('../')
-from metrics.metrics import compute_stats, compute_precision, compute_recall, compute_f1score, compute_accuracy, compute_confusion_matrix
+from metrics.metrics import compute_precision, compute_recall, compute_f1score, compute_accuracy, compute_confusion_matrix, extract_stats_from_confm
 from simple_trainer_manager import SimpleTrainer
 
 class Classification_Manager(SimpleTrainer):
@@ -63,7 +63,8 @@ class Classification_Manager(SimpleTrainer):
             self.stats.val.recall= np.mean(mean_recall)
             self.stats.val.precision = np.mean(mean_precision)
             self.stats.val.f1score = np.mean(mean_f1score)
-            self.stats.val.loss = val_loss.avg
+            if val_loss is not None:
+                self.stats.val.loss = val_loss.avg
 
         def save_stats(self, epoch):
             # Save logger
@@ -81,6 +82,24 @@ class Classification_Manager(SimpleTrainer):
                         self.stats.val.loss, 100 * self.stats.val.acc, 100 * self.stats.val.precision,
                         100 * self.stats.val.recall, 100 * self.stats.val.f1score))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
+
+        def update_msg(self, bar, global_bar):
+
+            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(np.asarray(self.stats.val.conf_m))
+            self.compute_stats(TP_list, TN_list, FP_list, FN_list, None)
+            accuracy = compute_accuracy(TP_list, TN_list, FP_list, FN_list)
+            precision = compute_precision(TP_list,FP_list)
+            recall = compute_recall(TP_list,FN_list)
+            f1score = compute_f1score(TP_list,FP_list,FN_list)
+            bar.set_msg(', acc: %.02f, precision: %.02f, recall: %.02f f1score: %.02f' % (100.*np.nanmean(accuracy), 100.*np.nanmean(precision), 100.*np.nanmean(recall), 100.*np.nanmean(f1score)))
+
+            if global_bar==None:
+                # Update progress bar
+                bar.update()
+            else:
+                self.msg.eval_str = '\n' + bar.get_message(step=True)
+                global_bar.set_msg(self.msg.accum_str + self.msg.last_str + self.msg.msg_stats_last + self.msg.msg_stats_best + self.msg.eval_str)
+                global_bar.update()
 
     class predict(SimpleTrainer.predict):
         def __init__(self, logger_stats, model, cf):

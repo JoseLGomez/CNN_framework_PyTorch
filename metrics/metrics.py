@@ -15,33 +15,13 @@ def _fast_hist(label_pred, label_true, num_classes):
         label_pred[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
     return hist
 
+def extract_stats_from_confm(confm_list):
+    TP_list = np.diag(confm_list)
+    FP_list = confm_list.sum(axis=0) - TP_list                  # predictions on columns
+    FN_list = confm_list.sum(axis=1) - TP_list                  # targets on rows
+    TN_list = confm_list.sum() - TP_list - FP_list - FN_list
 
-def compute_stats(inputs,targets,nLabels,invalid_label):
-    inputs_list = np.asarray(np.asarray(inputs).flatten())
-    targets_list = np.asarray(np.asarray(targets).flatten())
-
-    shape_inputs = np.shape(inputs_list)
-    shape_targets = np.shape(targets_list)
-
-    if shape_inputs != shape_targets:
-        sys.exit('Error computing mIoU, inputs and targets shapes must be the same: ' + str(shape_inputs) + '==' + str(
-            shape_targets))
-
-    TP_list = np.zeros(nLabels)
-    TN_list = np.zeros(nLabels)
-    FP_list = np.zeros(nLabels)
-    FN_list = np.zeros(nLabels)
-    for l in range(nLabels):
-        TP = float(np.sum(np.logical_and((targets_list == l),(inputs_list == l))))
-        TN = float(np.sum(np.logical_and(np.logical_and((targets_list != l),(targets_list != invalid_label)), (inputs_list != l))))
-        FP = float(np.sum(np.logical_and(np.logical_and((targets_list != l),(targets_list != invalid_label)),(inputs_list == l))))
-        FN = float(np.sum(np.logical_and((targets_list == l),(inputs_list != l))))
-        TP_list[l] = TP
-        TN_list[l] = TN
-        FP_list[l] = FP
-        FN_list[l] = FN
     return TP_list,TN_list,FP_list,FN_list
-
 
 def compute_mIoU(TP_list,FP_list,FN_list):
 
@@ -116,15 +96,20 @@ def compute_confusion_matrix(inputs,targets,nLabels,invalid_label):
 
     inputs_list = np.asarray(np.asarray(inputs).flatten())
     targets_list = np.asarray(np.asarray(targets).flatten())
-    num_samples = np.zeros(nLabels)
 
-    conf_m = np.zeros((nLabels,nLabels))
+    mask = (targets_list!=invalid_label)
 
-    for i in range(nLabels): # gt
-        for j in range(nLabels): # predictions
-            if np.sum(targets_list == i) == 0:
-                conf_m[i, j] = 0
-            else:
-                conf_m[i,j] = float(np.sum(np.logical_and((targets_list == i),(inputs_list == j))))/np.sum(targets_list == i)
+    conf_m = np.bincount(
+        nLabels * targets_list[mask].astype(int) +
+        inputs_list[mask], minlength=nLabels ** 2).reshape(nLabels, nLabels)
+
+    # conf_m = np.zeros((nLabels,nLabels))
+    #
+    # for i in range(nLabels): # gt
+    #     for j in range(nLabels): # predictions
+    #         if np.sum(targets_list == i) == 0:
+    #             conf_m[i, j] = 0
+    #         else:
+    #             conf_m[i,j] = float(np.sum(np.logical_and((targets_list == i),(inputs_list == j))))/np.sum(targets_list == i)
 
     return conf_m

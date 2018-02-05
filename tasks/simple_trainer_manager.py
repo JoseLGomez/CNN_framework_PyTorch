@@ -11,7 +11,7 @@ from utils.ProgressBar import ProgressBar
 from utils.logger import Logger
 from utils.statistics import Statistics
 from utils.messages import Messages
-from metrics.metrics import compute_stats, compute_accuracy, compute_confusion_matrix
+from metrics.metrics import compute_accuracy, compute_confusion_matrix, extract_stats_from_confm,compute_mIoU
 
 class SimpleTrainer(object):
     def __init__(self, cf, model):
@@ -75,7 +75,7 @@ class SimpleTrainer(object):
                     # Read Data
                     inputs, labels = data
 
-                    N = inputs.size(0)
+                    N,w,h,c = inputs.size()
                     inputs = Variable(inputs).cuda()
                     labels = Variable(labels).cuda()
 
@@ -84,13 +84,13 @@ class SimpleTrainer(object):
                     outputs = self.model.net(inputs)
 
                     # Compute gradients
-                    loss = criterion(outputs, labels) / N
+                    loss = criterion(outputs, labels)
                     loss.backward()
                     optimizer.step()
 
                     # Update loss
                     train_loss.update(loss.data[0], N)
-                    self.stats.train.loss = train_loss.avg
+                    self.stats.train.loss = train_loss.avg / (w*h*c)
 
                     # Update epoch messages
                     self.update_epoch_messages(epoch_bar, global_bar, train_num_batches,epoch, i)
@@ -174,9 +174,8 @@ class SimpleTrainer(object):
             self.msg = msg
 
         def start(self, criterion, valid_set, valid_loader, epoch=None, global_bar=None):
-            TP_list, TN_list, FP_list, FN_list = np.zeros(self.cf.num_classes), np.zeros(self.cf.num_classes), \
-                                                 np.zeros(self.cf.num_classes), np.zeros(self.cf.num_classes)
             confm_list = np.zeros((self.cf.num_classes,self.cf.num_classes))
+            mIoU_list = []
 
             val_loss = AverageMeter()
 
@@ -191,7 +190,7 @@ class SimpleTrainer(object):
             for vi, data in enumerate(valid_loader):
                 # Read data
                 inputs, gts = data
-                n_images = inputs.size(0)
+                n_images,w,h,c = inputs.size()
                 inputs = Variable(inputs, volatile=True).cuda()
                 gts = Variable(gts, volatile=True).cuda()
 
@@ -201,20 +200,20 @@ class SimpleTrainer(object):
 
                 # Compute batch stats
                 val_loss.update(criterion(outputs, gts).data[0] / n_images, n_images)
-                TP, TN, FP, FN = compute_stats(predictions, gts.cpu().data.numpy(), self.cf.num_classes, self.cf.void_class)
-                TP_list = map(operator.add, TP_list, TP)
-                TN_list = map(operator.add, TN_list, TN)
-                FN_list = map(operator.add, FN_list, FN)
-                FP_list = map(operator.add, FP_list, FP)
                 confm = compute_confusion_matrix(predictions,gts.cpu().data.numpy(),self.cf.num_classes,self.cf.void_class)
                 confm_list = map(operator.add, confm_list, confm)
 
+                # Save epoch stats
+                self.stats.val.conf_m = [[0 if np.sum(row) == 0 else el / np.sum(row) for el in row] for row in confm_list]
+                self.stats.val.loss = val_loss.avg / (w * h * c)
+
+                # Update messages
                 self.update_msg(bar, global_bar)
 
             # Compute stats
+            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(np.asarray(confm_list))
             self.compute_stats(TP_list, TN_list, FP_list, FN_list,val_loss)
-            # confm_list = map(list, zip(*confm_list))
-            confm_list = [[0 if np.sum(row)==0 else el/np.sum(row) for el in row] for row in confm_list]
+            confm_list = [[0 if np.sum(row) == 0 else el / np.sum(row) for el in row] for row in confm_list]
 
             # Save stats
             self.save_stats(epoch)
@@ -229,7 +228,8 @@ class SimpleTrainer(object):
                 global_bar.set_msg(self.msg.accum_str + self.msg.last_str + self.msg.msg_stats_last + self.msg.msg_stats_best + self.msg.eval_str)
                 global_bar.update()
 
-        def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
+        def compute_stats(self, confm_list, val_loss):
+            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(confm_list)
             mean_accuracy = compute_accuracy(TP_list, TN_list, FP_list, FN_list)
             self.stats.val.acc = np.mean(mean_accuracy)
             self.stats.val.loss = val_loss.avg
