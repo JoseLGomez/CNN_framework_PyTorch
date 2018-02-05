@@ -212,13 +212,14 @@ class SimpleTrainer(object):
                 self.update_msg(bar, global_bar)
 
             # Compute stats
+            confm_list = [[0 if np.sum(row) == 0 else el / np.sum(row) for el in row] for row in confm_list]
+            self.stats.val.conf_m = confm_list
+
             TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(np.asarray(confm_list))
             self.compute_stats(TP_list, TN_list, FP_list, FN_list,val_loss)
-            confm_list = [[0 if np.sum(row) == 0 else el / np.sum(row) for el in row] for row in confm_list]
 
             # Save stats
             self.save_stats(epoch)
-            self.stats.val.conf_m = confm_list
 
         def update_msg(self, bar, global_bar):
             if global_bar==None:
@@ -232,7 +233,7 @@ class SimpleTrainer(object):
         def compute_stats(self, confm_list, val_loss):
             TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(confm_list)
             mean_accuracy = compute_accuracy(TP_list, TN_list, FP_list, FN_list)
-            self.stats.val.acc = np.mean(mean_accuracy)
+            self.stats.val.acc = np.nanmean(mean_accuracy)
             self.stats.val.loss = val_loss.avg
 
         def save_stats(self, epoch):
