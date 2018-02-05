@@ -32,7 +32,7 @@ class SimpleTrainer(object):
             self.model = model
             self.cf = cf
             self.validator = validator
-            self.logger_stats.write('\n- Starting train <---')
+            self.logger_stats.write('\n- Starting train <--- \n')
             self.curr_epoch = self.cf.initial_epoch
             self.stop = False
             self.stats = stats
@@ -136,7 +136,7 @@ class SimpleTrainer(object):
         def update_messages(self, epoch, epoch_time):
             # Update logger
             epoch_time = time.time() - epoch_time
-            self.logger_stats.write('\t Epoch step finished: %ds ' % (epoch_time))
+            self.logger_stats.write('\t Epoch step finished: %ds \n' % (epoch_time))
 
             # Compute best stats
             self.msg.msg_stats_last = '\nLast epoch: acc = %.2f, loss = %.5f\n' % (100 * self.stats.val.mIoU, self.stats.val.loss)
@@ -145,6 +145,7 @@ class SimpleTrainer(object):
                 epoch, 100 * self.stats.val.acc, self.stats.val.loss)
 
                 msg_confm = self.stats.val.get_confm_str()
+                self.logger_stats.write(msg_confm)
                 self.msg.msg_stats_best = self.msg.msg_stats_best + msg_confm
 
                 self.best_acc = self.stats.val.acc
@@ -161,7 +162,7 @@ class SimpleTrainer(object):
             # Display progress
             curr_iter = (epoch - 1) * train_num_batches + batch
             if (batch + 1) % math.ceil(train_num_batches / 20.) == 0:
-                self.logger_stats.write('[Global iteration %d], [iter %d / %d], [train loss %.5f]' % (
+                self.logger_stats.write('[Global iteration %d], [iter %d / %d], [train loss %.5f] \n' % (
                     curr_iter, batch + 1, train_num_batches, self.stats.train.loss))
 
     class validation(object):
@@ -237,13 +238,13 @@ class SimpleTrainer(object):
         def save_stats(self, epoch):
             # Save logger
             if epoch is not None:
-                self.logger_stats.write('----------------- Epoch scores summary -------------------------')
-                self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f],' % (
+                self.logger_stats.write('----------------- Epoch scores summary ------------------------- \n')
+                self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f] \n' % (
                     epoch, self.stats.val.loss, 100*self.stats.val.acc))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
             else:
-                self.logger_stats.write('----------------- Scores summary --------------------')
-                self.logger_stats.write('[val loss %.5f], [acc %.2f]' % (
+                self.logger_stats.write('----------------- Scores summary -------------------- \n')
+                self.logger_stats.write('[val loss %.5f], [acc %.2f] \n' % (
                     self.stats.val.loss, 100 * self.stats.val.acc))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
 
@@ -266,7 +267,7 @@ class SimpleTrainer(object):
 
                 self.write_results(predictions,img_name)
 
-                self.logger_stats.write('%d / %d' % (vi + 1, len(dataloader)))
+                self.logger_stats.write('%d / %d \n' % (vi + 1, len(dataloader)))
 
         def write_results(self,predictions, img_name):
                 pass

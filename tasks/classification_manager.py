@@ -37,7 +37,7 @@ class Classification_Manager(SimpleTrainer):
         def update_messages(self, epoch, epoch_time):
             # Update logger
             epoch_time = time.time() - epoch_time
-            self.logger_stats.write('\t Epoch step finished: %ds ' % (epoch_time))
+            self.logger_stats.write('\t Epoch step finished: %ds \n' % (epoch_time))
 
             # Compute best stats
             self.msg.msg_stats_last = '\nLast epoch: acc= %.2f, precision= %.2f, recall= %.2f, f1score= %.2f, loss = %.5f\n' % (
@@ -68,16 +68,16 @@ class Classification_Manager(SimpleTrainer):
         def save_stats(self, epoch):
             # Save logger
             if epoch is not None:
-                self.logger_stats.write('----------------- Epoch scores summary -------------------------')
+                self.logger_stats.write('----------------- Epoch scores summary -------------------------\n')
                 self.logger_stats.write(
-                    '[epoch %d], [val loss %.5f], [acc %.2f], [precision %.2f], [recall %.2f], [f1score %.2f],' % (
+                    '[epoch %d], [val loss %.5f], [acc %.2f], [precision %.2f], [recall %.2f], [f1score %.2f]\n' % (
                         epoch, self.stats.val.loss, 100 * self.stats.val.acc, 100 * self.stats.val.precision,
                         100 * self.stats.val.recall, 100 * self.stats.val.f1score))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
             else:
-                self.logger_stats.write('----------------- Scores summary --------------------')
+                self.logger_stats.write('----------------- Scores summary --------------------\n')
                 self.logger_stats.write(
-                    '[val loss %.5f], [acc %.2f], [precision %.2f], [recall %.2f], [f1score %.2f]' % (
+                    '[val loss %.5f], [acc %.2f], [precision %.2f], [recall %.2f], [f1score %.2f]\n' % (
                         self.stats.val.loss, 100 * self.stats.val.acc, 100 * self.stats.val.precision,
                         100 * self.stats.val.recall, 100 * self.stats.val.f1score))
                 self.logger_stats.write('---------------------------------------------------------------- \n')

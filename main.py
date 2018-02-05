@@ -75,7 +75,7 @@ def main():
         dataloader.build_train()
         if cf.valid_images_txt is not None and cf.valid_gt_txt is not None and cf.valid_samples_epoch != 0:
             logger_debug.write('\n- Reading Validation dataset: ')
-            dataloader.build_valid(cf.valid_samples, cf.valid_images_txt, cf.valid_gt_txt,
+            dataloader.build_valid(cf.valid_samples_epoch, cf.valid_images_txt, cf.valid_gt_txt,
                                    cf.resize_image_valid, cf.valid_batch_size)
             problem_manager.trainer.start(criterion, optimizer, dataloader.train_loader, dataloader.train_set,
                                           dataloader.loader_set, dataloader.loader, scheduler)
