@@ -39,7 +39,7 @@ class SemanticSegmentation_Manager(SimpleTrainer):
         def update_messages(self, epoch, epoch_time):
             # Update logger
             epoch_time = time.time() - epoch_time
-            self.logger_stats.write('\t Epoch step finished: %ds ' % (epoch_time))
+            self.logger_stats.write('\t Epoch step finished: %ds \n' % (epoch_time))
 
             # Compute best stats
             self.msg.msg_stats_last = '\nLast epoch: mIoU = %.2f, acc= %.2f, loss = %.5f\n' % (
@@ -50,6 +50,7 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                 self.best_IoU = self.stats.val.mIoU
 
                 msg_confm = self.stats.val.get_confm_str()
+                self.logger_stats.write(msg_confm)
                 self.msg.msg_stats_best = self.msg.msg_stats_best + '\nConfusion matrix:\n' + msg_confm
 
     class validation(SimpleTrainer.validation):
@@ -68,13 +69,13 @@ class SemanticSegmentation_Manager(SimpleTrainer):
         def save_stats(self, epoch):
             # Save logger
             if epoch is not None:
-                self.logger_stats.write('----------------- Epoch scores summary -------------------------')
-                self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f], [mean_IoU %.2f],' % (
+                self.logger_stats.write('----------------- Epoch scores summary ------------------------- \n')
+                self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f], [mean_IoU %.2f] \n' % (
                     epoch, self.stats.val.loss, 100*self.stats.val.acc, 100*self.stats.val.mIoU))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
             else:
-                self.logger_stats.write('----------------- Scores summary --------------------')
-                self.logger_stats.write('[val loss %.5f], [acc %.2f], [mean_IoU %.2f]' % (
+                self.logger_stats.write('----------------- Scores summary -------------------- \n')
+                self.logger_stats.write('[val loss %.5f], [acc %.2f], [mean_IoU %.2f]\n' % (
                     self.stats.val.loss, 100 * self.stats.val.acc, 100 * self.stats.val.mIoU))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
 
