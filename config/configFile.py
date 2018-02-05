@@ -35,8 +35,8 @@ valid_batch_size            = 1
 test_batch_size             = 1
 train                       = True
 validation                  = True
-test                        = False # Calculate metrics on test giving the gt
-predict_test                = False  # True when you want to generate predictions from test, doesn't need gt
+test                        = True # Calculate metrics on test giving the gt
+predict_test                = True  # True when you want to generate predictions from test, doesn't need gt
 predict_path_output         = None # None uses the default output in the experiment folder /predictions
 
 # Image properties
