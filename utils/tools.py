@@ -1,9 +1,8 @@
-import os
 import numpy as np
 import cv2 as cv
 import matplotlib
 import StringIO
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 def confm_metrics2image(conf_matrix,names=None):

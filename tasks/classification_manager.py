@@ -8,12 +8,12 @@ from metrics.metrics import compute_precision, compute_recall, compute_f1score, 
 from simple_trainer_manager import SimpleTrainer
 
 class Classification_Manager(SimpleTrainer):
-    def __init__(self, cf, model):
-        super(Classification_Manager, self).__init__(cf, model)
+    def __init__(self, cf, model, writer):
+        super(Classification_Manager, self).__init__(cf, model, writer)
 
     class train(SimpleTrainer.train):
-        def __init__(self, logger_stats, model, cf, validator, stats, msg):
-            super(Classification_Manager.train, self).__init__(logger_stats, model, cf, validator, stats, msg)
+        def __init__(self, logger_stats, model, cf, validator, stats, msg, writer):
+            super(Classification_Manager.train, self).__init__(logger_stats, model, cf, validator, stats, msg, writer)
             self.best_f1score = -1
 
         def validate_epoch(self, valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar):
@@ -51,8 +51,8 @@ class Classification_Manager(SimpleTrainer):
                 self.msg.msg_stats_best = self.msg.msg_stats_best + '\nConfusion matrix:\n' + msg_confm
 
     class validation(SimpleTrainer.validation):
-        def __init__(self, logger_stats, model, cf, stats, msg):
-            super(Classification_Manager.validation, self).__init__(logger_stats, model, cf, stats, msg)
+        def __init__(self, logger_stats, model, cf, stats, msg, writer):
+            super(Classification_Manager.validation, self).__init__(logger_stats, model, cf, stats, msg, writer)
 
         def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
             mean_accuracy = compute_accuracy(TP_list, TN_list, FP_list, FN_list)
@@ -102,8 +102,8 @@ class Classification_Manager(SimpleTrainer):
                 global_bar.update()
 
     class predict(SimpleTrainer.predict):
-        def __init__(self, logger_stats, model, cf):
-            super(Classification_Manager.predict, self).__init__(logger_stats, model, cf)
+        def __init__(self, logger_stats, model, cf, writer):
+            super(Classification_Manager.predict, self).__init__(logger_stats, model, cf, writer)
             self.filename = os.path.join(self.cf.predict_path_output, 'predictions.txt')
             self.f = open(self.filename,'w')
 

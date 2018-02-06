@@ -6,16 +6,17 @@ from PIL import Image
 import cv2 as cv
 
 sys.path.append('../')
+from utils.tools import confm_metrics2image
 from metrics.metrics import compute_mIoU, compute_accuracy_segmentation, extract_stats_from_confm
 from simple_trainer_manager import SimpleTrainer
 
 class SemanticSegmentation_Manager(SimpleTrainer):
-    def __init__(self, cf, model):
-        super(SemanticSegmentation_Manager, self).__init__(cf, model)
+    def __init__(self, cf, model, writer):
+        super(SemanticSegmentation_Manager, self).__init__(cf, model, writer)
 
     class train(SimpleTrainer.train):
-        def __init__(self, logger_stats, model, cf, validator, stats, msg):
-            super(SemanticSegmentation_Manager.train, self).__init__(logger_stats, model, cf, validator, stats, msg)
+        def __init__(self, logger_stats, model, cf, validator, stats, msg, writer):
+            super(SemanticSegmentation_Manager.train, self).__init__(logger_stats, model, cf, validator, stats, msg, writer)
             self.best_IoU = 0
 
         def validate_epoch(self, valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar):
@@ -51,11 +52,11 @@ class SemanticSegmentation_Manager(SimpleTrainer):
 
                 msg_confm = self.stats.val.get_confm_str()
                 self.logger_stats.write(msg_confm)
-                self.msg.msg_stats_best = self.msg.msg_stats_best + '\nConfusion matrix:\n' + msg_confm
+                self.msg.msg_stats_best = self.msg.msg_stats_best #+ '\nConfusion matrix:\n' + msg_confm
 
     class validation(SimpleTrainer.validation):
-        def __init__(self, logger_stats, model, cf, stats, msg):
-            super(SemanticSegmentation_Manager.validation, self).__init__(logger_stats, model, cf, stats, msg)
+        def __init__(self, logger_stats, model, cf, stats, msg, writer):
+            super(SemanticSegmentation_Manager.validation, self).__init__(logger_stats, model, cf, stats, msg, writer)
 
         def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
             mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
@@ -73,6 +74,12 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                 self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f], [mean_IoU %.2f] \n' % (
                     epoch, self.stats.val.loss, 100*self.stats.val.acc, 100*self.stats.val.mIoU))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
+                # add scores to tensorboard
+                self.writer.add_scalar('val_loss',  self.stats.val.loss, epoch)
+                self.writer.add_scalar('acc', self.stats.val.acc, epoch)
+                self.writer.add_scalar('mean_iu', self.stats.val.mIoU, epoch)
+                conf_mat_img = confm_metrics2image(self.stats.val.conf_m, self.cf.labels)
+                self.writer.add_image('conf_matrix', conf_mat_img, epoch)
             else:
                 self.logger_stats.write('----------------- Scores summary -------------------- \n')
                 self.logger_stats.write('[val loss %.5f], [acc %.2f], [mean_IoU %.2f]\n' % (
@@ -95,8 +102,8 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                 global_bar.update()
 
     class predict(SimpleTrainer.predict):
-        def __init__(self, logger_stats, model, cf):
-            super(SemanticSegmentation_Manager.predict, self).__init__(logger_stats, model, cf)
+        def __init__(self, logger_stats, model, cf, writer):
+            super(SemanticSegmentation_Manager.predict, self).__init__(logger_stats, model, cf, writer)
 
         def write_results(self,predictions, img_name):
                 path = os.path.join(self.cf.predict_path_output, img_name[0])

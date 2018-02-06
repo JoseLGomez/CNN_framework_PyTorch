@@ -14,19 +14,20 @@ from utils.messages import Messages
 from metrics.metrics import compute_accuracy, compute_confusion_matrix, extract_stats_from_confm,compute_mIoU
 
 class SimpleTrainer(object):
-    def __init__(self, cf, model):
+    def __init__(self, cf, model, writer):
         self.cf = cf
         self.model = model
         self.logger_stats = Logger(cf.log_file_stats)
         self.stats = Statistics()
         self.msg = Messages()
+        self.writer = writer
 
-        self.validator = self.validation(self.logger_stats, self.model, cf, self.stats, self.msg)
-        self.trainer = self.train(self.logger_stats, self.model, cf, self.validator, self.stats, self.msg)
-        self.predictor = self.predict(self.logger_stats, self.model, cf)
+        self.validator = self.validation(self.logger_stats, self.model, cf, self.stats, self.msg, self.writer)
+        self.trainer = self.train(self.logger_stats, self.model, cf, self.validator, self.stats, self.msg, self.writer)
+        self.predictor = self.predict(self.logger_stats, self.model, cf, self.writer)
 
     class train(object):
-        def __init__(self, logger_stats, model, cf, validator, stats, msg):
+        def __init__(self, logger_stats, model, cf, validator, stats, msg, writer):
             # Initialize training variables
             self.logger_stats = logger_stats
             self.model = model
@@ -38,6 +39,7 @@ class SimpleTrainer(object):
             self.stats = stats
             self.best_acc = 0
             self.msg = msg
+            self.writer = writer
 
         def start(self, criterion, optimizer, train_loader, train_set, valid_set=None, valid_loader=None, scheduler=None):
             train_num_batches = math.ceil(train_set.num_images / float(self.cf.train_batch_size))
@@ -91,9 +93,15 @@ class SimpleTrainer(object):
                     # Update loss
                     train_loss.update(loss.data[0], N)
                     self.stats.train.loss = train_loss.avg / (w*h*c)
+                    # tensorboard loss
+                    curr_iter = (epoch - 1) * train_num_batches + i
+                    self.writer.add_scalar('train_loss_iter', self.stats.train.loss, curr_iter)
 
                     # Update epoch messages
                     self.update_epoch_messages(epoch_bar, global_bar, train_num_batches,epoch, i)
+
+                # Epoch loss tensorboard
+                self.writer.add_scalar('train_loss_epoch', self.stats.train.loss, epoch)
 
                 # Validate epoch
                 self.validate_epoch(valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar)
@@ -128,7 +136,6 @@ class SimpleTrainer(object):
                     early_Stopping.check(self.stats.train.loss, self.stats.val.loss, self.stats.val.mIoU, self.stats.val.acc)
                     if early_Stopping.stop == True:
                         self.stop=True
-
                 # Set model in training mode
                 self.model.net.train()
 
@@ -150,7 +157,7 @@ class SimpleTrainer(object):
 
                 self.best_acc = self.stats.val.acc
 
-        def update_epoch_messages(self, epoch_bar, global_bar, train_num_batches,epoch, batch):
+        def update_epoch_messages(self, epoch_bar, global_bar, train_num_batches, epoch, batch):
             # Update progress bar
             epoch_bar.set_msg('loss = %.5f' % self.stats.train.loss)
             self.msg.last_str = epoch_bar.get_message(step=True)
@@ -160,19 +167,20 @@ class SimpleTrainer(object):
             # writer.add_scalar('train_loss', train_loss.avg, curr_iter)
 
             # Display progress
-            curr_iter = (epoch - 1) * train_num_batches + batch
+            curr_iter = (epoch - 1) * train_num_batches + batch + 1
             if (batch + 1) % math.ceil(train_num_batches / 20.) == 0:
                 self.logger_stats.write('[Global iteration %d], [iter %d / %d], [train loss %.5f] \n' % (
                     curr_iter, batch + 1, train_num_batches, self.stats.train.loss))
 
     class validation(object):
-        def __init__(self, logger_stats, model, cf, stats, msg):
+        def __init__(self, logger_stats, model, cf, stats, msg, writer):
             # Initialize validation variables
             self.logger_stats = logger_stats
             self.model = model
             self.cf = cf
             self.stats = stats
             self.msg = msg
+            self.writer = writer
 
         def start(self, criterion, valid_set, valid_loader, epoch=None, global_bar=None):
             confm_list = np.zeros((self.cf.num_classes,self.cf.num_classes))
@@ -250,10 +258,11 @@ class SimpleTrainer(object):
                 self.logger_stats.write('---------------------------------------------------------------- \n')
 
     class predict(object):
-        def __init__(self, logger_stats, model, cf):
+        def __init__(self, logger_stats, model, cf, writer):
             self.logger_stats = logger_stats
             self.model = model
             self.cf = cf
+            self.writer = writer
 
         def start(self, dataloader):
             self.model.net.eval()

@@ -58,8 +58,9 @@ valid_gt_txt                = '/home/jlgomez/Datasets/Splits/cityscapes_valid_gt
 test_images_txt             = '/home/jlgomez/Datasets/Splits/cityscapes_valid_images.txt'
 test_gt_txt                 = '/home/jlgomez/Datasets/Splits/cityscapes_valid_gt.txt'
 
-'''labels                       = ['person', 'car', 'truck', 'drivable', 'nondrivable', 'blocker', 
-                                                            'info', 'sky', 'buildings', 'nature'] '''
+labels                       = ['road','sidewalk','building','wall','fence','pole','traffic light','traffic, sign',
+                                'vegetation','terrain','sky','person','rider','car','truck','bus','train',
+                                'motorcycle','bicycle']
 num_classes                 = 19
 shuffle                     = True
 void_class                  = 255   # void id or value on the image

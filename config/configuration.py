@@ -15,6 +15,7 @@ class Configuration():
         cf.config_path = self.config_path
         cf.exp_name = self.exp_name
         cf.exp_folder = self.exp_folder
+        cf.tensorboard_path = self.exp_folder + 'tensorboard/'
         cf.log_file = os.path.join(cf.exp_folder, "logfile.log")
         cf.log_file_stats = os.path.join(cf.exp_folder, "logfile_stats.log")
         cf.log_file_debug = os.path.join(cf.exp_folder, "logfile_debug.log")
