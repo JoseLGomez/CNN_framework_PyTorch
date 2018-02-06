@@ -14,10 +14,11 @@ model_compression           = 0.0             # Compression rate for DenseNet de
 
 basic_pretrained_model      = '/home/jlgomez/Repositories/PyTorchFramework/pretrained_models/vgg16-397923af.pth' # '/home/jlgomez/Repositories/PyTorchFramework/pretrained_models/vgg16-397923af.pth'             
 
-    ### load/store options
-pretrained_model            = False           # True to use a pretrained model
+    ### load options
+pretrained_model            = 'basic'            # 'None': from scratch, 'basic': pretraned from imagenet, 'custom': personal model
 input_model_path            = None            # Path and pretrained file to load [None uses experiment path and model name by default]
 load_weight_only            = True            # Recomended true, loads only weights and parameters
+    ### Save options
 save_weight_only            = True            # Recomended true, stores only weights and parameters
 model_name                  = 'FCN8'          # Name of the model to store
 output_model_path           = None            # Path to store the model using model_name [None uses the default experiment path]

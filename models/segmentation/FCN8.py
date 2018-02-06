@@ -1,30 +1,13 @@
+import sys
 import torch
 import numpy as np
 from torch import nn
 
-#import fcn
-
 from FCN16 import FCN16
+sys.path.append('../')
+from models.model import Model
 
-
-# https://github.com/shelhamer/fcn.berkeleyvision.org/blob/master/surgery.py
-def get_upsampling_weight(in_channels, out_channels, kernel_size):
-    """Make a 2D bilinear kernel suitable for upsampling"""
-    factor = (kernel_size + 1) // 2
-    if kernel_size % 2 == 1:
-        center = factor - 1
-    else:
-        center = factor - 0.5
-    og = np.ogrid[:kernel_size, :kernel_size]
-    filt = (1 - abs(og[0] - center) / factor) * \
-           (1 - abs(og[1] - center) / factor)
-    weight = np.zeros((in_channels, out_channels, kernel_size, kernel_size),
-                      dtype=np.float64)
-    weight[range(in_channels), range(out_channels), :, :] = filt
-    return torch.from_numpy(weight).float()
-
-
-class FCN8(nn.Module):
+class FCN8(Model):
 
 
     '''@classmethod
@@ -105,20 +88,6 @@ class FCN8(nn.Module):
         self._initialize_weights()
 
         self.copy_params_from_fcn16s()
-
-
-    def _initialize_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                m.weight.data.zero_()
-                if m.bias is not None:
-                    m.bias.data.zero_()
-            if isinstance(m, nn.ConvTranspose2d):
-                assert m.kernel_size[0] == m.kernel_size[1]
-                initial_weight = get_upsampling_weight(
-                    m.in_channels, m.out_channels, m.kernel_size[0])
-                m.weight.data.copy_(initial_weight)
-
 
     def forward(self, x):
         h = x

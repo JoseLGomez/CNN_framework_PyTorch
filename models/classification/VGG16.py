@@ -1,13 +1,10 @@
-import torch
-import numpy as np
+import sys
 from torch import nn
-
-#import fcn
 import torchvision.models.vgg as models
+sys.path.append('../')
+from models.model import Model
 
-
-class VGG16(nn.Module):
-
+class VGG16(Model):
 
     def __init__(self, num_classes=21, pretrained=None):
         super(VGG16, self).__init__()
@@ -23,7 +20,6 @@ class VGG16(nn.Module):
             nn.Dropout(),
             nn.Linear(4096, num_classes),
         )'''
-
 
     def forward(self, x):
 

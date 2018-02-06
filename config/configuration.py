@@ -39,4 +39,8 @@ class Configuration():
                 os.makedirs(cf.output_model_path)
         if cf.map_labels is not None:
             cf.map_labels = np.asarray(cf.map_labels,dtype=np.uint16)
+        if cf.pretrained_model is None:
+            cf.pretrained_model = 'None'
+        if not cf.pretrained_model.lower() in ('none', 'basic', 'custom'):
+            raise ValueError('Unknown pretrained_model definition')
         return cf
