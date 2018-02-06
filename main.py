@@ -1,7 +1,5 @@
 import argparse
 import time
-import os
-from tensorboardX import SummaryWriter
 from tasks.semanticSegmentator_manager import SemanticSegmentation_Manager
 from tasks.classification_manager import Classification_Manager
 from config.configuration import Configuration
@@ -37,8 +35,6 @@ def main():
     print ('Loading configuration ...')
     config = Configuration(args.config_file, args.exp_name, args.exp_folder)
     cf = config.Load()
-    # TensorboardX writer
-    writer = SummaryWriter(os.path.join(cf.tensorboard_path))
     # Enable log file
     logger_debug = Logger(cf.log_file_debug)
 
@@ -51,9 +47,9 @@ def main():
 
     # Problem type
     if cf.problem_type == 'segmentation':
-        problem_manager = SemanticSegmentation_Manager(cf, model, writer)
+        problem_manager = SemanticSegmentation_Manager(cf, model)
     elif cf.problem_type == 'classification':
-        problem_manager = Classification_Manager(cf, model, writer)
+        problem_manager = Classification_Manager(cf, model)
     else:
         raise ValueError('Unknown problem type')
 

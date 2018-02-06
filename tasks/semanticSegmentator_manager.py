@@ -11,12 +11,12 @@ from metrics.metrics import compute_mIoU, compute_accuracy_segmentation, extract
 from simple_trainer_manager import SimpleTrainer
 
 class SemanticSegmentation_Manager(SimpleTrainer):
-    def __init__(self, cf, model, writer):
-        super(SemanticSegmentation_Manager, self).__init__(cf, model, writer)
+    def __init__(self, cf, model):
+        super(SemanticSegmentation_Manager, self).__init__(cf, model)
 
     class train(SimpleTrainer.train):
-        def __init__(self, logger_stats, model, cf, validator, stats, msg, writer):
-            super(SemanticSegmentation_Manager.train, self).__init__(logger_stats, model, cf, validator, stats, msg, writer)
+        def __init__(self, logger_stats, model, cf, validator, stats, msg):
+            super(SemanticSegmentation_Manager.train, self).__init__(logger_stats, model, cf, validator, stats, msg)
             self.best_IoU = 0
 
         def validate_epoch(self, valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar):
@@ -52,13 +52,34 @@ class SemanticSegmentation_Manager(SimpleTrainer):
 
                 msg_confm = self.stats.val.get_confm_str()
                 self.logger_stats.write(msg_confm)
-                self.msg.msg_stats_best = self.msg.msg_stats_best #+ '\nConfusion matrix:\n' + msg_confm
+                self.msg.msg_stats_best = self.msg.msg_stats_best + '\nConfusion matrix:\n' + msg_confm
+
+        def compute_stats(self, confm_list, train_loss):
+            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(confm_list)
+            mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
+            mean_accuracy = compute_accuracy_segmentation(TP_list, FN_list)
+            self.stats.train.acc = np.nanmean(mean_accuracy)
+            self.stats.train.mIoU_perclass = mean_IoU
+            self.stats.train.mIoU = np.nanmean(mean_IoU)
+            if train_loss is not None:
+                self.stats.val.loss = train_loss.avg
+
+        def save_stats_epoch(self, epoch):
+            # Save logger
+            if epoch is not None:
+                # Epoch loss tensorboard
+                self.writer.add_scalar('losses/epoch', self.stats.train.loss, epoch)
+                self.writer.add_scalar('metrics/accuracy', 100.*self.stats.train.acc, epoch)
+                self.writer.add_scalar('metrics/mIoU', 100.*self.stats.train.mIoU, epoch)
+                conf_mat_img = confm_metrics2image(self.stats.train.get_confm_norm(), self.cf.labels)
+                self.writer.add_image('metrics/conf_matrix', conf_mat_img, epoch)
 
     class validation(SimpleTrainer.validation):
-        def __init__(self, logger_stats, model, cf, stats, msg, writer):
-            super(SemanticSegmentation_Manager.validation, self).__init__(logger_stats, model, cf, stats, msg, writer)
+        def __init__(self, logger_stats, model, cf, stats, msg):
+            super(SemanticSegmentation_Manager.validation, self).__init__(logger_stats, model, cf, stats, msg)
 
-        def compute_stats(self, TP_list, TN_list, FP_list, FN_list, val_loss):
+        def compute_stats(self, confm_list, val_loss):
+            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(confm_list)
             mean_IoU = compute_mIoU(TP_list, FP_list, FN_list)
             mean_accuracy = compute_accuracy_segmentation(TP_list, FN_list)
             self.stats.val.acc = np.nanmean(mean_accuracy)
@@ -70,17 +91,19 @@ class SemanticSegmentation_Manager(SimpleTrainer):
         def save_stats(self, epoch):
             # Save logger
             if epoch is not None:
+                # add log
                 self.logger_stats.write('----------------- Epoch scores summary ------------------------- \n')
                 self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f], [mean_IoU %.2f] \n' % (
                     epoch, self.stats.val.loss, 100*self.stats.val.acc, 100*self.stats.val.mIoU))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
                 self.logger_stats.save_json(self.stats.val, epoch)
+
                 # add scores to tensorboard
-                self.writer.add_scalar('val_loss',  self.stats.val.loss, epoch)
-                self.writer.add_scalar('acc', self.stats.val.acc, epoch)
-                self.writer.add_scalar('mean_iu', self.stats.val.mIoU, epoch)
-                conf_mat_img = confm_metrics2image(self.stats.val.conf_m, self.cf.labels)
-                self.writer.add_image('conf_matrix', conf_mat_img, epoch)
+                self.writer.add_scalar('losses/epoch',  self.stats.val.loss, epoch)
+                self.writer.add_scalar('metrics/accuracy', 100.*self.stats.val.acc, epoch)
+                self.writer.add_scalar('metrics/mIoU', 100.*self.stats.val.mIoU, epoch)
+                conf_mat_img = confm_metrics2image(self.stats.val.get_confm_norm(), self.cf.labels)
+                self.writer.add_image('metrics/conf_matrix', conf_mat_img, epoch)
             else:
                 self.logger_stats.write('----------------- Scores summary -------------------- \n')
                 self.logger_stats.write('[val loss %.5f], [acc %.2f], [mean_IoU %.2f]\n' % (
@@ -89,10 +112,8 @@ class SemanticSegmentation_Manager(SimpleTrainer):
 
         def update_msg(self, bar, global_bar):
 
-            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(np.asarray(self.stats.val.conf_m))
-            self.compute_stats(TP_list, TN_list, FP_list, FN_list, None)
-            mIoU = compute_mIoU(TP_list, FP_list, FN_list)
-            bar.set_msg(', mIoU: %.02f' % (100.*np.nanmean(mIoU)))
+            self.compute_stats(np.asarray(self.stats.val.conf_m), None)
+            bar.set_msg(', mIoU: %.02f' % (100.*np.nanmean(self.stats.val.mIoU)))
 
             if global_bar==None:
                 # Update progress bar
@@ -103,8 +124,8 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                 global_bar.update()
 
     class predict(SimpleTrainer.predict):
-        def __init__(self, logger_stats, model, cf, writer):
-            super(SemanticSegmentation_Manager.predict, self).__init__(logger_stats, model, cf, writer)
+        def __init__(self, logger_stats, model, cf):
+            super(SemanticSegmentation_Manager.predict, self).__init__(logger_stats, model, cf)
 
         def write_results(self,predictions, img_name):
                 path = os.path.join(self.cf.predict_path_output, img_name[0])

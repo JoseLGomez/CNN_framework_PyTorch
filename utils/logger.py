@@ -17,9 +17,10 @@ class Logger(object):
         precision_class_list = stats.precision_perclass if stats.precision_perclass == [] else stats.precision_perclass.tolist()
         recall_class_list = stats.recall_perclass if stats.recall_perclass == [] else stats.recall_perclass.tolist()
         f1score_class_list = stats.f1score_perclass if stats.f1score_perclass == [] else stats.f1score_perclass.tolist()
+        conf_m = [[0 if conf_row.sum()==0 else el/conf_row.sum() for el in conf_row] for conf_row in stats.conf_m]
         stats_dic = {'epoch': epoch, 'loss': stats.loss, 'mIoU': stats.mIoU, 'acc': stats.acc,
                      'precision': stats.precision,'recall': stats.recall, 'f1score': stats.f1score,
-                     'conf_m': stats.conf_m,'mIoU_perclass': mIoU_class_list,'accuracy_perclass': acc_class_list,
+                     'conf_m': conf_m,'mIoU_perclass': mIoU_class_list,'accuracy_perclass': acc_class_list,
                      'precision_perclass': precision_class_list,'recall_perclass': recall_class_list,
                      'f1score_perclass': f1score_class_list}
         json.dump(stats_dic, self.json_file)

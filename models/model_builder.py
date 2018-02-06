@@ -18,8 +18,7 @@ class Model_builder():
         if self.cf.pretrained_model.lower() == 'custom' and not self.cf.load_weight_only:
             self.net = self.restore_model()
             return self.net
-        if self.cf.pretrained_model.lower() == 'basic':
-            basic_pretrained_model = self.load_basic_weights(self.net)
+
         if self.cf.model_type.lower() == 'densenetfcn':
             self.net = FCDenseNet(nb_layers_per_block=self.cf.model_layers,
                                 growth_rate=self.cf.model_growth,
@@ -33,28 +32,24 @@ class Model_builder():
             self.net = VGG16(num_classes=self.cf.num_classes, pretrained=self.cf.basic_pretrained_model).cuda()
         else:
             raise ValueError('Unknown model')
+
+        if self.cf.pretrained_model.lower() == 'basic':
+            self.load_basic_weights()
+
         if self.cf.pretrained_model.lower() == 'custom' and self.cf.load_weight_only:
-            self.net = self.restore_weights(self.net)
+            self.net.restore_weights()
 
     def restore_weights(self, net):
         print('\t Restoring model from ' + self.cf.input_model_path)
         net.load_state_dict(torch.load(os.path.join(self.cf.input_model_path)))
         return net
 
-    def load_basic_weights(self, net):
+    def load_basic_weights(self):
         path = '../pretrained_models/'
         if not os.path.exists(path):
             os.makedirs(path)
-        if self.cf.model_type.lower() == 'fcn8':
-            filename = os.path.join(path, 'basic_fcn8.pth')
-            url = 'https://drive.google.com/open?id=14iqBziZceLsWoaFFuLieKpc2dbav7I91'
-            self.download_if_not_exist(filename,url)
-        elif self.cf.model_type.lower() == 'vgg16':
-            file_name = 'basic_vgg16.pth'
-            url = ''
-        else:
-            raise ValueError('Unknown model')
-        return
+        filename = os.path.join(path, 'basic_'+self.cf.model_type.lower()+'.pth')
+        self.net.download_if_not_exist(filename)
 
     def restore_model(self):
         print('\t Restoring weight from ' + self.cf.input_model_path + self.cf.model_name)

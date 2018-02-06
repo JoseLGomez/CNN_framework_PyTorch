@@ -7,6 +7,7 @@ from torch import nn
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
+        self.url = None
 
     def forward(self, x):
         pass
@@ -39,10 +40,10 @@ class Model(nn.Module):
         weight[range(in_channels), range(out_channels), :, :] = filt
         return torch.from_numpy(weight).float()
 
-    def download_if_not_exist(self, filename, url):
+    def download_if_not_exist(self, filename):
         # Download the file if it does not exist
-        if not os.path.isfile(filename):
-            urllib.urlretrieve(url, filename)
+        if not os.path.isfile(filename) and self.url is not None:
+            urllib.urlretrieve(self.url, filename)
 
     def restore_weights(self):
         print('\t Restoring model from ' + self.cf.input_model_path)

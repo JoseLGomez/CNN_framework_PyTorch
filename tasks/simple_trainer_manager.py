@@ -13,22 +13,24 @@ from utils.statistics import Statistics
 from utils.messages import Messages
 from metrics.metrics import compute_accuracy, compute_confusion_matrix, extract_stats_from_confm,compute_mIoU
 
+import os
+from tensorboardX import SummaryWriter
+
 class SimpleTrainer(object):
-    def __init__(self, cf, model, writer):
+    def __init__(self, cf, model):
         self.cf = cf
         self.model = model
         self.logger_stats = Logger(cf.log_file_stats)
         self.logger_stats.create_json(cf.json_file)
         self.stats = Statistics()
         self.msg = Messages()
-        self.writer = writer
 
-        self.validator = self.validation(self.logger_stats, self.model, cf, self.stats, self.msg, self.writer)
-        self.trainer = self.train(self.logger_stats, self.model, cf, self.validator, self.stats, self.msg, self.writer)
-        self.predictor = self.predict(self.logger_stats, self.model, cf, self.writer)
+        self.validator = self.validation(self.logger_stats, self.model, cf, self.stats, self.msg)
+        self.trainer = self.train(self.logger_stats, self.model, cf, self.validator, self.stats, self.msg)
+        self.predictor = self.predict(self.logger_stats, self.model, cf)
 
     class train(object):
-        def __init__(self, logger_stats, model, cf, validator, stats, msg, writer):
+        def __init__(self, logger_stats, model, cf, validator, stats, msg):
             # Initialize training variables
             self.logger_stats = logger_stats
             self.model = model
@@ -40,7 +42,7 @@ class SimpleTrainer(object):
             self.stats = stats
             self.best_acc = 0
             self.msg = msg
-            self.writer = writer
+            self.writer = SummaryWriter(os.path.join(cf.tensorboard_path,'train'))
 
         def start(self, criterion, optimizer, train_loader, train_set, valid_set=None, valid_loader=None, scheduler=None):
             train_num_batches = math.ceil(train_set.num_images / float(self.cf.train_batch_size))
@@ -72,6 +74,7 @@ class SimpleTrainer(object):
 
                 # Initialize stats
                 train_loss = AverageMeter()
+                confm_list = np.zeros((self.cf.num_classes, self.cf.num_classes))
 
                 # Train epoch
                 for i, data in enumerate(train_loader):
@@ -85,24 +88,30 @@ class SimpleTrainer(object):
                     # Predict model
                     optimizer.zero_grad()
                     outputs = self.model.net(inputs)
+                    predictions = outputs.data.max(1)[1].cpu().numpy()
 
                     # Compute gradients
                     loss = criterion(outputs, labels)
                     loss.backward()
                     optimizer.step()
 
-                    # Update loss
+                    # Compute batch stats
                     train_loss.update(loss.data[0], N)
+                    confm = compute_confusion_matrix(predictions, labels.cpu().data.numpy(), self.cf.num_classes,
+                                                     self.cf.void_class)
+                    confm_list = map(operator.add, confm_list, confm)
                     self.stats.train.loss = train_loss.avg / (w*h*c)
-                    # tensorboard loss
-                    curr_iter = (epoch - 1) * train_num_batches + i
-                    self.writer.add_scalar('train_loss_iter', self.stats.train.loss, curr_iter)
+
+                    # Save stats
+                    self.save_stats_batch((epoch - 1) * train_num_batches + i)
 
                     # Update epoch messages
                     self.update_epoch_messages(epoch_bar, global_bar, train_num_batches,epoch, i)
 
-                # Epoch loss tensorboard
-                self.writer.add_scalar('train_loss_epoch', self.stats.train.loss, epoch)
+                # Save stats
+                self.stats.train.conf_m = confm_list
+                self.compute_stats(np.asarray(confm_list),train_loss)
+                self.save_stats_epoch(epoch)
 
                 # Validate epoch
                 self.validate_epoch(valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar)
@@ -123,6 +132,24 @@ class SimpleTrainer(object):
             # Save model without training
             if self.cf.epochs == 0:
                 self.model.save_model(self.model.net)
+
+        def save_stats_epoch(self, epoch):
+            # Save logger
+            if epoch is not None:
+                # Epoch loss tensorboard
+                self.writer.add_scalar('losses/epoch', self.stats.train.loss, epoch)
+                self.writer.add_scalar('metrics/accuracy', 100.*self.stats.train.acc, epoch)
+
+        def save_stats_batch(self, batch):
+            # Save logger
+            if batch is not None:
+                self.writer.add_scalar('losses/batch', self.stats.train.loss, batch)
+
+        def compute_stats(self, confm_list, train_loss):
+            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(confm_list)
+            mean_accuracy = compute_accuracy(TP_list, TN_list, FP_list, FN_list)
+            self.stats.train.acc = np.nanmean(mean_accuracy)
+            self.stats.train.loss = train_loss.avg
 
         def validate_epoch(self,valid_set, valid_loader, criterion, early_Stopping, epoch, global_bar):
 
@@ -174,14 +201,14 @@ class SimpleTrainer(object):
                     curr_iter, batch + 1, train_num_batches, self.stats.train.loss))
 
     class validation(object):
-        def __init__(self, logger_stats, model, cf, stats, msg, writer):
+        def __init__(self, logger_stats, model, cf, stats, msg):
             # Initialize validation variables
             self.logger_stats = logger_stats
             self.model = model
             self.cf = cf
             self.stats = stats
             self.msg = msg
-            self.writer = writer
+            self.writer = SummaryWriter(os.path.join(cf.tensorboard_path, 'validation'))
 
         def start(self, criterion, valid_set, valid_loader, epoch=None, global_bar=None):
             confm_list = np.zeros((self.cf.num_classes,self.cf.num_classes))
@@ -213,18 +240,14 @@ class SimpleTrainer(object):
                 confm_list = map(operator.add, confm_list, confm)
 
                 # Save epoch stats
-                self.stats.val.conf_m = [[0 if np.sum(row) == 0 else el / np.sum(row) for el in row] for row in confm_list]
+                self.stats.val.conf_m = confm_list
                 self.stats.val.loss = val_loss.avg / (w * h * c)
 
                 # Update messages
                 self.update_msg(bar, global_bar)
 
             # Compute stats
-            confm_list = [[0 if np.sum(row) == 0 else el / np.sum(row) for el in row] for row in confm_list]
-            self.stats.val.conf_m = confm_list
-
-            TP_list, TN_list, FP_list, FN_list = extract_stats_from_confm(np.asarray(confm_list))
-            self.compute_stats(TP_list, TN_list, FP_list, FN_list,val_loss)
+            self.compute_stats(np.asarray(self.stats.val.conf_m), val_loss)
 
             # Save stats
             self.save_stats(epoch)
@@ -259,11 +282,10 @@ class SimpleTrainer(object):
                 self.logger_stats.write('---------------------------------------------------------------- \n')
 
     class predict(object):
-        def __init__(self, logger_stats, model, cf, writer):
+        def __init__(self, logger_stats, model, cf):
             self.logger_stats = logger_stats
             self.model = model
             self.cf = cf
-            self.writer = writer
 
         def start(self, dataloader):
             self.model.net.eval()
