@@ -1,6 +1,7 @@
 import imp
 import os
 import shutil
+import numpy as np
 
 class Configuration():
     def __init__(self, config_path, exp_name, exp_folder):
@@ -36,4 +37,6 @@ class Configuration():
         else:
             if not os.path.exists(cf.output_model_path):
                 os.makedirs(cf.output_model_path)
+
+        cf.map_labels = np.asarray(cf.map_labels,dtype=np.uint16)
         return cf

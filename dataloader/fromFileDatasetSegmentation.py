@@ -37,7 +37,7 @@ class fromFileDatasetSegmentation(Data_loader):
         img_path = self.image_names[self.indexes[idx]]
         gt_path = self.gt_names[self.indexes[idx]]
         img = self.load_img(img_path, self.resize, self.cf.grayscale, order=1)
-        gt = self.load_img(gt_path, self.resize, grayscale=True, order=0)
+        gt = self.cf.map_labels[self.load_img(gt_path, self.resize, grayscale=True, order=0)]
         if self.transform is not None:
             img, gt = self.transform(img, gt)
         #img = Image.fromarray(img.astype(np.uint8))

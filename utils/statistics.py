@@ -8,6 +8,10 @@ class TaskStats(object):
         self.f1score = 0
         self.conf_m = []
         self.mIoU_perclass = []
+        self.acc_perclass = []
+        self.precision_perclass = []
+        self.recall_perclass = []
+        self.f1score_perclass = []
 
     def get_confm_str(self):
         msg = ''

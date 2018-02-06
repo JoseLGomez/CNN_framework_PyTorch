@@ -147,8 +147,8 @@ class SimpleTrainer(object):
             self.logger_stats.write('\t Epoch step finished: %ds \n' % (epoch_time))
 
             # Compute best stats
-            self.msg.msg_stats_last = '\nLast epoch: acc = %.2f, loss = %.5f\n' % (100 * self.stats.val.mIoU, self.stats.val.loss)
-            if self.best_acc < self.stats.val.mIoU:
+            self.msg.msg_stats_last = '\nLast epoch: acc = %.2f, loss = %.5f\n' % (100 * self.stats.val.acc, self.stats.val.loss)
+            if self.best_acc < self.stats.val.acc:
                 self.msg.msg_stats_best = 'Best case: epoch = %d, acc = %.2f, loss = %.5f\n' % (
                 epoch, 100 * self.stats.val.acc, self.stats.val.loss)
 
@@ -185,7 +185,6 @@ class SimpleTrainer(object):
 
         def start(self, criterion, valid_set, valid_loader, epoch=None, global_bar=None):
             confm_list = np.zeros((self.cf.num_classes,self.cf.num_classes))
-            mIoU_list = []
 
             val_loss = AverageMeter()
 
