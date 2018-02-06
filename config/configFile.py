@@ -15,7 +15,7 @@ model_compression           = 0.0             # Compression rate for DenseNet de
 basic_pretrained_model      = '/home/jlgomez/Repositories/PyTorchFramework/pretrained_models/vgg16-397923af.pth' # '/home/jlgomez/Repositories/PyTorchFramework/pretrained_models/vgg16-397923af.pth'             
 
     ### load/store options
-pretrained_model            = False           # True to use a custom pretrained model or restore experiment
+pretrained_model            = False           # True to use a pretrained model
 input_model_path            = None            # Path and pretrained file to load [None uses experiment path and model name by default]
 load_weight_only            = True            # Recomended true, loads only weights and parameters
 save_weight_only            = True            # Recomended true, stores only weights and parameters
@@ -61,6 +61,7 @@ test_gt_txt                 = '/home/jlgomez/Datasets/Splits/cityscapes_valid_gt
 labels                       = ['road','sidewalk','building','wall','fence','pole','traffic light','traffic, sign',
                                 'vegetation','terrain','sky','person','rider','car','truck','bus','train',
                                 'motorcycle','bicycle']
+map_labels                  = None
 num_classes                 = 19
 shuffle                     = True
 void_class                  = 255   # void id or value on the image
