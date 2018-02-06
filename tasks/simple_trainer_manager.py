@@ -18,6 +18,7 @@ class SimpleTrainer(object):
         self.cf = cf
         self.model = model
         self.logger_stats = Logger(cf.log_file_stats)
+        self.logger_stats.create_json(cf.json_file)
         self.stats = Statistics()
         self.msg = Messages()
         self.writer = writer
@@ -251,6 +252,7 @@ class SimpleTrainer(object):
                 self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f] \n' % (
                     epoch, self.stats.val.loss, 100*self.stats.val.acc))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
+                self.logger_stats.save_json(self.stats.val, epoch)
             else:
                 self.logger_stats.write('----------------- Scores summary -------------------- \n')
                 self.logger_stats.write('[val loss %.5f], [acc %.2f] \n' % (

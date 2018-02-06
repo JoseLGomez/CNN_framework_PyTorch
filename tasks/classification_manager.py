@@ -75,6 +75,7 @@ class Classification_Manager(SimpleTrainer):
                         epoch, self.stats.val.loss, 100 * self.stats.val.acc, 100 * self.stats.val.precision,
                         100 * self.stats.val.recall, 100 * self.stats.val.f1score))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
+                self.logger_stats.save_json(self.stats.val, epoch)
             else:
                 self.logger_stats.write('----------------- Scores summary --------------------\n')
                 self.logger_stats.write(

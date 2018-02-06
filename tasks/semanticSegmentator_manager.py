@@ -74,6 +74,7 @@ class SemanticSegmentation_Manager(SimpleTrainer):
                 self.logger_stats.write('[epoch %d], [val loss %.5f], [acc %.2f], [mean_IoU %.2f] \n' % (
                     epoch, self.stats.val.loss, 100*self.stats.val.acc, 100*self.stats.val.mIoU))
                 self.logger_stats.write('---------------------------------------------------------------- \n')
+                self.logger_stats.save_json(self.stats.val, epoch)
                 # add scores to tensorboard
                 self.writer.add_scalar('val_loss',  self.stats.val.loss, epoch)
                 self.writer.add_scalar('acc', self.stats.val.acc, epoch)
