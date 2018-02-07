@@ -22,7 +22,8 @@ class FCN8(Model):
     def __init__(self, num_classes=21, pretrained=False, basic_model_path='./pretrained_model/', net_name='fcn8'):
         super(FCN8, self).__init__()
         #self.url = 'https://drive.google.com/open?id=14iqBziZceLsWoaFFuLieKpc2dbav7I91'
-        self.url = 'https://drive.google.com/uc?export=view&id=14iqBziZceLsWoaFFuLieKpc2dbav7I91'
+        #self.url = 'https://drive.google.com/uc?export=view&id=14iqBziZceLsWoaFFuLieKpc2dbav7I91'
+        self.url = 'http://datasets.cvc.uab.es/models/pytorch/basic_fcn8.pth'
 
         # conv1
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=100)

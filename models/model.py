@@ -56,15 +56,15 @@ class Model(nn.Module):
     def download_if_not_exist(self, filename):
         # Download the file if it does not exist
         if not os.path.isfile(filename) and self.url is not None:
-            urllib.urlretrieve(self.url, filename)
-            #wget.download(self.url, filename)
+            #urllib.urlretrieve(self.url, filename)
+            wget.download(self.url, filename)
             #self.download_google_drive2(self.url, filename)
 
     def restore_weights(self, filename):
         print('\t Loading basic model weights from ' + filename)
         self.load_state_dict(torch.load(os.path.join(filename)))
 
-    '''def download_google_drive(self, url, outfile):
+    def download_google_drive(self, url, outfile):
         http = httplib2.Http()
         drive_service = build('drive', 'v2', http=http)
         resp, content = drive_service._http.request(url)
@@ -90,4 +90,4 @@ class Model(nn.Module):
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            print "Download %d%%." % int(status.progress() * 100)'''
+            print "Download %d%%." % int(status.progress() * 100)
