@@ -13,7 +13,7 @@ The following repository contains a functional framework to perform different de
 - Train, validation and test in one run using a proper configuration.
 - Early stopping with model saving control via different metrics
 - TensorBoardX support (with confusion matrix display)
-- Configuration file to run experiments easily [ConfigFile](https://github.com/gvillalonga89/CNN_framework_PyTorch_private/tree/master/config/README.md)
+- Configuration file to run experiments easily [ConfigFile](https://github.com/gvillalonga89/CNN_framework_PyTorch_private/tree/master/config)
 - Metrics: mean accuracy, mean IoU
 - Dataloader on GPU
 - Training scheduler
