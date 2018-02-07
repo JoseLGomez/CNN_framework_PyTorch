@@ -68,9 +68,9 @@ void_class                  = 255   # void id or value on the image
 epochs                      = 2     # Max number of epochs, use 0 to save directly a model, useful to make conversions
 initial_epoch               = 1     # Defines the starting epoch number
 valid_samples_epoch         = 10    # Number of validation images used to validate an epoch
-is_training                 = True
+
     ### Optimizer ###
-optimizer                   = 'SGD'
+optimizer                   = 'SGD' #Options available ['SGD','Adam','RMSProp']
 momentum1                   = 0.95
 momentum2                   = 0.99
 learning_rate               = 1.0e-4
