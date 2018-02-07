@@ -1,13 +1,7 @@
 import torch
 import os
 import numpy as np
-import urllib
 import wget
-import io
-import httplib2
-import apiclient
-from apiclient.http import MediaIoBaseDownload
-from apiclient.discovery import build
 from torch import nn
 
 class Model(nn.Module):
@@ -62,32 +56,14 @@ class Model(nn.Module):
 
     def restore_weights(self, filename):
         print('\t Loading basic model weights from ' + filename)
-        self.load_state_dict(torch.load(os.path.join(filename)))
 
-    def download_google_drive(self, url, outfile):
-        http = httplib2.Http()
-        drive_service = build('drive', 'v2', http=http)
-        resp, content = drive_service._http.request(url)
-        if resp.status == 200:
-            if os.path.isfile(outfile):
-                print "ERROR, %s already exist" % outfile
+        pretrained_dict = torch.load(filename)['model_state_dict']
+        model_dict = self.state_dict()
+
+        for k, v in pretrained_dict.items():
+            if v.size()!=model_dict[k].size():
+                print('\t WARNING: Could not load layer ' + str(k) + ' with shape: '+str(v.size())+ ' and '+str(model_dict[k].size()))
             else:
-                with open(outfile, 'w') as f:
-                    f.write(content)
-                print "OK"
-        else:
-            print ('ERROR downloading')
+                model_dict[k] = v
 
-    def download_google_drive2(self, url, outfile):
-        id = url.split('=')
-        print id[-1]
-        print ('downloading file...')
-        http = httplib2.Http()
-        drive_service = build('drive', 'v2', http=http)
-        fh = open(outfile, "w")
-        request = drive_service.files().get_media(fileId=id[-1])
-        downloader = MediaIoBaseDownload(fh, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-            print "Download %d%%." % int(status.progress() * 100)
+        self.load_state_dict(model_dict)

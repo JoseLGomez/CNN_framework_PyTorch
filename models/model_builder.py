@@ -36,12 +36,7 @@ class Model_builder():
             raise ValueError('Unknown model')
 
         if self.cf.pretrained_model.lower() == 'custom' and self.cf.load_weight_only:
-            self.net.restore_weights()
-
-    def restore_weights(self, net):
-        print('\t Restoring model from ' + self.cf.input_model_path)
-        net.load_state_dict(torch.load(os.path.join(self.cf.input_model_path)))
-        return net
+            self.net.restore_weights(os.path.join(self.cf.input_model_path))
 
     def restore_model(self):
         print('\t Restoring weight from ' + self.cf.input_model_path + self.cf.model_name)
