@@ -51,7 +51,6 @@ class Model(nn.Module):
             os.makedirs(basic_model_path)
         filename = os.path.join(basic_model_path, 'basic_'+ net_name +'.pth')
         self.download_if_not_exist(filename)
-        input()
         self.restore_weights(filename)
 
     def download_if_not_exist(self, filename):

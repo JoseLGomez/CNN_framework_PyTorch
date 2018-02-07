@@ -6,7 +6,7 @@ from config.configuration import Configuration
 from loss.loss_builder import Loss_Builder
 from models.model_builder import Model_builder
 from utils.optimizer_builder import Optimizer_builder
-from utils.scheduler_builder import scheduler_builder
+from scheduler.scheduler_builder import scheduler_builder
 from utils.logger import Logger
 from dataloader.dataloader_builder import Dataloader_Builder
 
