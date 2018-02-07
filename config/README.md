@@ -52,48 +52,48 @@ The following parameters defines the input images and resize dimensions, can be 
 
 #### Dataset properties
 The following parameters are used to specify the txt file and path where the images paths are contained
-train_images_txt            
-train_gt_txt                
-valid_images_txt            
-valid_gt_txt                
-test_images_txt             
-test_gt_txt                 
+- train_images_txt            
+- train_gt_txt                
+- valid_images_txt            
+- valid_gt_txt                
+- test_images_txt             
+- test_gt_txt                 
 
-labels                      : list to define the classes names used in the problem. This classes names will be displayed in the confusion matrix on TensorBoard
-map_labels                  : List of the indexes to map the previous classes defined with the ground Truth. Useful to remap ground truth not preprocessed like cityscapes
-num_classes                 : Define the number of classes of the problem
-shuffle                     : Enable/Disable random images selection on train
-void_class                  : Specifies the index value of the class void. Use map_labels to assign different classes to void
+- labels                      : list to define the classes names used in the problem. This classes names will be displayed in the confusion matrix on TensorBoard
+- map_labels                  : List of the indexes to map the previous classes defined with the ground Truth. Useful to remap ground truth not preprocessed like cityscapes
+- num_classes                 : Define the number of classes of the problem
+- shuffle                     : Enable/Disable random images selection on train
+- void_class                  : Specifies the index value of the class void. Use map_labels to assign different classes to void
 
 #### Training
-epochs                      : Maximum number of epochs of train, use 0 to save directly a model, useful to make conversions.
-initial_epoch               : Define the epoch number to start, normally 1, but can be set freely to display purposes
-valid_samples_epoch         : Number of validation images used to validate an epoch during training
+- epochs                      : Maximum number of epochs of train, use 0 to save directly a model, useful to make conversions.
+- initial_epoch               : Define the epoch number to start, normally 1, but can be set freely to display purposes
+- valid_samples_epoch         : Number of validation images used to validate an epoch during training
 
 ##### Optimizer
-optimizer                   : Define the optimizer to use in the training step. Options available ['SGD','Adam','RMSProp']
-momentum1                   : principal momentum parameter for the different optimizers, beta1 for Adam
-momentum2                   : beta2 parameter for Adam
-learning_rate               
-learning_rate_bias          : learning rate for the bias
-weight_decay                
+- optimizer                   : Define the optimizer to use in the training step. Options available ['SGD','Adam','RMSProp']
+- momentum1                   : principal momentum parameter for the different optimizers, beta1 for Adam
+- momentum2                   : beta2 parameter for Adam
+- learning_rate               
+- learning_rate_bias          : learning rate for the bias
+- weight_decay                
 ##### Scheduler
-scheduler                   : Defines the scheduler approach to use. The option available are ['ReduceLROnPlateau','Step','MultiStep','Exponential', None]
-decay                       : Learning rate decay to apply (lr*decay)
-sched_patience              : ReduceLROnPlateau option: epoch patience without loss change until a lr decrement
-step_size                   : Step option: epoch counter to decrease lr
-milestone                   : MultiStep option: define different milestones (epochs) to decrease lr
+- scheduler                   : Defines the scheduler approach to use. The option available are ['ReduceLROnPlateau','Step','MultiStep','Exponential', None]
+- decay                       : Learning rate decay to apply (lr*decay)
+- sched_patience              : ReduceLROnPlateau option: epoch patience without loss change until a lr decrement
+- step_size                   : Step option: epoch counter to decrease lr
+- milestone                   : MultiStep option: define different milestones (epochs) to decrease lr
 ##### Save criteria
-save_condition              : Defines the metric to take into account to store the best model obtained in validation per epoch. Options available ['always','(x)_loss','(x)_mAcc','(x)_mIoU'] x = valid or train_loss
+- save_condition              : Defines the metric to take into account to store the best model obtained in validation per epoch. Options available ['always','(x)_loss','(x)_mAcc','(x)_mIoU'] x = valid or train_loss
 ##### Early Stopping
-early_stopping              : Enable/Disable early stopping control to finish the experiment when not improvement is obtained after X epochs
-stop_condition              : Defines the metric to take into account to perform the early stopping. Options available [(x)_loss','(x)_mAcc','(x)_mIoU'] x = valid or train_loss
-patience                    : define the number of epochs to wait before stop
+- early_stopping              : Enable/Disable early stopping control to finish the experiment when not improvement is obtained after X epochs
+- stop_condition              : Defines the metric to take into account to perform the early stopping. Options available [(x)_loss','(x)_mAcc','(x)_mIoU'] x = valid or train_loss
+- patience                    : define the number of epochs to wait before stop
 
 #### Image preprocess
-rescale                     : Rescaling factor of the image values
-mean                        : define the dataset mean
-std                         : define the dataset standard deviation 
+- rescale                     : Rescaling factor of the image values
+- mean                        : define the dataset mean
+- std                         : define the dataset standard deviation 
 
 #### Data augmentation
-hflips                      : Enable/Disable random horitzontals flips in the images on training
+- hflips                      : Enable/Disable random horitzontals flips in the images on training
