@@ -43,4 +43,8 @@ class Configuration():
             cf.pretrained_model = 'None'
         if not cf.pretrained_model.lower() in ('none', 'basic', 'custom'):
             raise ValueError('Unknown pretrained_model definition')
+        if cf.pretrained_model == 'basic':
+            cf.basic_pretrained_model = True
+        else:
+            cf.basic_pretrained_model = False
         return cf

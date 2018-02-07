@@ -6,7 +6,7 @@ from models.model import Model
 
 class VGG16(Model):
 
-    def __init__(self, num_classes=21, pretrained=None):
+    def __init__(self, num_classes=21, pretrained=False, basic_model_path='./pretrained_model/', net_name='vgg16'):
         super(VGG16, self).__init__()
 
         self.model = models.vgg16(pretrained=False, num_classes=num_classes)
@@ -20,6 +20,8 @@ class VGG16(Model):
             nn.Dropout(),
             nn.Linear(4096, num_classes),
         )'''
+        if pretrained:
+            self.load_basic_weights(basic_model_path, net_name)
 
     def forward(self, x):
 

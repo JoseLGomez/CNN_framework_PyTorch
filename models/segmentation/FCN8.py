@@ -19,10 +19,10 @@ class FCN8(Model):
         )
         '''
 
-    def __init__(self, num_classes=21, pretrained=None):
+    def __init__(self, num_classes=21, pretrained=False, basic_model_path='./pretrained_model/', net_name='fcn8'):
         super(FCN8, self).__init__()
-        self.pretrained_model = './pretrained_models/fcn16s_from_caffe.pth'
-        self.url = 'https://drive.google.com/open?id=14iqBziZceLsWoaFFuLieKpc2dbav7I91'
+        #self.url = 'https://drive.google.com/open?id=14iqBziZceLsWoaFFuLieKpc2dbav7I91'
+        self.url = 'https://drive.google.com/uc?export=view&id=14iqBziZceLsWoaFFuLieKpc2dbav7I91'
 
         # conv1
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=100)
@@ -88,7 +88,9 @@ class FCN8(Model):
 
         self._initialize_weights()
 
-        self.copy_params_from_fcn16s()
+        if pretrained:
+            self.load_basic_weights(basic_model_path, net_name)
+        #self.copy_params_from_fcn16s()
 
     def forward(self, x):
         h = x

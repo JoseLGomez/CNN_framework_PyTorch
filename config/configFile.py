@@ -9,15 +9,12 @@ model_growth                = 12              # Growth rate per block (k) densen
 model_upsampling            = 'deconv'        # upsampling types available: 'upsampling' , 'subpixel', 'deconv'
 model_dropout               = 0.0             # Dropout rate densenetFCN_Custom only
 model_compression           = 0.0             # Compression rate for DenseNet densenetFCN_Custom only
-    ### FCN8 options ####
-    # Especify pretrained model path of VGG16 PyTorch, that you can obtain on https://download.pytorch.org/models/vgg16-397923af.pth
-
-basic_pretrained_model      = '/home/jlgomez/Repositories/PyTorchFramework/pretrained_models/vgg16-397923af.pth' # '/home/jlgomez/Repositories/PyTorchFramework/pretrained_models/vgg16-397923af.pth'             
 
     ### load options
 pretrained_model            = 'basic'            # 'None': from scratch, 'basic': pretraned from imagenet, 'custom': personal model
 input_model_path            = None            # Path and pretrained file to load [None uses experiment path and model name by default]
 load_weight_only            = True            # Recomended true, loads only weights and parameters
+basic_models_path           = './pretrained_models/' # Path for the basic models (ImageNet weights) where they will be download
     ### Save options
 save_weight_only            = True            # Recomended true, stores only weights and parameters
 model_name                  = 'FCN8'          # Name of the model to store

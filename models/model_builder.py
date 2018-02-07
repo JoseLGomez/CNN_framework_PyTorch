@@ -27,14 +27,13 @@ class Model_builder():
                                 n_classes=self.cf.num_classes,
                                 drop_rate=0, bottle_neck=False).cuda()
         elif self.cf.model_type.lower() == 'fcn8':
-            self.net = FCN8(num_classes=self.cf.num_classes, pretrained=self.cf.basic_pretrained_model).cuda()
+            self.net = FCN8(num_classes=self.cf.num_classes, pretrained=self.cf.basic_pretrained_model,
+                            basic_model_path=self.cf.basic_models_path).cuda()
         elif self.cf.model_type.lower() == 'vgg16':
-            self.net = VGG16(num_classes=self.cf.num_classes, pretrained=self.cf.basic_pretrained_model).cuda()
+            self.net = VGG16(num_classes=self.cf.num_classes, pretrained=self.cf.basic_pretrained_model,
+                             basic_model_path=self.cf.basic_models_path).cuda()
         else:
             raise ValueError('Unknown model')
-
-        if self.cf.pretrained_model.lower() == 'basic':
-            self.load_basic_weights()
 
         if self.cf.pretrained_model.lower() == 'custom' and self.cf.load_weight_only:
             self.net.restore_weights()
@@ -43,13 +42,6 @@ class Model_builder():
         print('\t Restoring model from ' + self.cf.input_model_path)
         net.load_state_dict(torch.load(os.path.join(self.cf.input_model_path)))
         return net
-
-    def load_basic_weights(self):
-        path = '../pretrained_models/'
-        if not os.path.exists(path):
-            os.makedirs(path)
-        filename = os.path.join(path, 'basic_'+self.cf.model_type.lower()+'.pth')
-        self.net.download_if_not_exist(filename)
 
     def restore_model(self):
         print('\t Restoring weight from ' + self.cf.input_model_path + self.cf.model_name)

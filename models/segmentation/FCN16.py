@@ -35,7 +35,7 @@ class FCN16(nn.Module):
             md5='991ea45d30d632a01e5ec48002cac617',
         )'''
 
-    def __init__(self, n_class=21):
+    def __init__(self, n_class=21, pretrained=False, basic_model_path='./pretrained_model/', net_name='fcn16'):
         super(FCN16, self).__init__()
         # conv1
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=100)
@@ -97,6 +97,9 @@ class FCN16(nn.Module):
             n_class, n_class, 32, stride=16, bias=False)
 
         self._initialize_weights()
+
+        if pretrained:
+            self.load_basic_weights(basic_model_path, net_name)
 
     def _initialize_weights(self):
         for m in self.modules():
