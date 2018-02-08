@@ -2,7 +2,7 @@ import numpy as np
 
 class TaskStats(object):
     def __init__(self):
-        self.loss = 0
+        self.loss = float('inf')
         self.mIoU = 0
         self.acc = 0
         self.precision = 0

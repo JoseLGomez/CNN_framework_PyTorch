@@ -57,9 +57,9 @@ class DenseBlock(Model):
 
 class FCDenseNet(Model):
 
-    def __init__(self, nb_layers_per_block, growth_rate, nb_dense_block=5, n_channel_start=48,
+    def __init__(self, cf, nb_layers_per_block, growth_rate, nb_dense_block=5, n_channel_start=48,
                  n_classes=12, drop_rate=0, bottle_neck=False):
-        super(FCDenseNet, self).__init__()
+        super(FCDenseNet, self).__init__(cf)
         self.nb_dense_block = nb_dense_block
         self.n_classes = n_classes
         self.n_channel_start = n_channel_start

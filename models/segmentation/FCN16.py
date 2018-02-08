@@ -35,8 +35,8 @@ class FCN16(nn.Module):
             md5='991ea45d30d632a01e5ec48002cac617',
         )'''
 
-    def __init__(self, n_class=21, pretrained=False, basic_model_path='./pretrained_model/', net_name='fcn16'):
-        super(FCN16, self).__init__()
+    def __init__(self, cf, n_class=21, pretrained=False, net_name='fcn16'):
+        super(FCN16, self).__init__(cf)
         # conv1
         self.conv1_1 = nn.Conv2d(3, 64, 3, padding=100)
         self.relu1_1 = nn.ReLU(inplace=True)
@@ -99,7 +99,7 @@ class FCN16(nn.Module):
         self._initialize_weights()
 
         if pretrained:
-            self.load_basic_weights(basic_model_path, net_name)
+            self.load_basic_weights(net_name)
 
     def _initialize_weights(self):
         for m in self.modules():

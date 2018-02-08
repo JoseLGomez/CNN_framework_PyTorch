@@ -47,4 +47,6 @@ class Configuration():
             cf.basic_pretrained_model = True
         else:
             cf.basic_pretrained_model = False
+        if cf.basic_models_path is None:
+            cf.basic_models_path = './pretrained_model/',
         return cf

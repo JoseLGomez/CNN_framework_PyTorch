@@ -121,7 +121,7 @@ class SimpleTrainer(object):
                     scheduler.step(self.stats.val.loss)
 
                 # Saving model if needed
-                self.model.save(self.model.net, self.stats)
+                self.model.net.save(self.stats)
 
                 # Update display values
                 self.update_messages(epoch, epoch_time)
